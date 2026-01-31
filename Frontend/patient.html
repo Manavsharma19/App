@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSE Patient Portal - Symptom Assessment</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16162a 100%);
+            color: #eee;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #00695c 0%, #004d40 100%);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 105, 92, 0.3);
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header .logo {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover { background: rgba(255,255,255,0.2); }
+        .nav-link.active { background: rgba(255,255,255,0.25); font-weight: 600; }
+
+        /* Main Layout */
+        .main-container {
+            display: flex;
+            flex: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        /* Patient Selection Panel */
+        .patient-panel {
+            width: 320px;
+            background: rgba(30, 30, 50, 0.6);
+            border: 1px solid rgba(200, 199, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #4ade80;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .patient-card {
+            background: rgba(40, 40, 70, 0.6);
+            border: 2px solid rgba(200, 199, 255, 0.1);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .patient-card:hover {
+            border-color: #4ade80;
+            transform: translateX(4px);
+        }
+
+        .patient-card.selected {
+            border-color: #4ade80;
+            background: rgba(74, 222, 128, 0.1);
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.2);
+        }
+
+        .patient-card .name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .patient-card .details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .patient-card .detail-tag {
+            background: rgba(200, 199, 255, 0.1);
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+
+        .patient-card .blood-type {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        .patient-card .condition {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+
+        .add-patient-btn {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 16px;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .add-patient-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .selected-patient-info {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid rgba(200, 199, 255, 0.1);
+        }
+
+        .selected-patient-info h4 {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .info-item {
+            background: rgba(40, 40, 70, 0.8);
+            padding: 8px 10px;
+            border-radius: 8px;
+        }
+
+        .info-item .label {
+            color: #888;
+            font-size: 10px;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .info-item .value {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        /* Chat Panel */
+        .chat-panel {
+            flex: 1;
+            background: rgba(30, 30, 50, 0.6);
+            border: 1px solid rgba(200, 199, 255, 0.1);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 16px 20px;
+            background: rgba(0, 105, 92, 0.3);
+            border-bottom: 1px solid rgba(200, 199, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h2 {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #4ade80;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 14px 18px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.bot {
+            background: rgba(0, 105, 92, 0.3);
+            border: 1px solid rgba(0, 105, 92, 0.5);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.user {
+            background: rgba(83, 80, 196, 0.3);
+            border: 1px solid rgba(83, 80, 196, 0.5);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.system {
+            background: rgba(251, 191, 36, 0.2);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            align-self: center;
+            max-width: 90%;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .message.result {
+            background: rgba(74, 222, 128, 0.15);
+            border: 1px solid rgba(74, 222, 128, 0.4);
+            align-self: center;
+            max-width: 95%;
+        }
+
+        .result-card {
+            padding: 10px 0;
+        }
+
+        .result-card h4 {
+            color: #4ade80;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .result-item {
+            background: rgba(30, 30, 50, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .result-item .label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .result-item .value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .urgency-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .urgency-1 { background: #dc2626; color: white; }
+        .urgency-2 { background: #ea580c; color: white; }
+        .urgency-3 { background: #ca8a04; color: white; }
+        .urgency-4 { background: #16a34a; color: white; }
+        .urgency-5 { background: #0891b2; color: white; }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 14px 18px;
+            background: rgba(0, 105, 92, 0.3);
+            border: 1px solid rgba(0, 105, 92, 0.5);
+            border-radius: 16px;
+            border-bottom-left-radius: 4px;
+            align-self: flex-start;
+            max-width: 80px;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-6px); opacity: 1; }
+        }
+
+        /* Chat Input */
+        .chat-input-area {
+            padding: 16px 20px;
+            background: rgba(20, 20, 40, 0.8);
+            border-top: 1px solid rgba(200, 199, 255, 0.1);
+        }
+
+        .quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .quick-reply {
+            background: rgba(0, 105, 92, 0.3);
+            border: 1px solid rgba(0, 105, 92, 0.5);
+            color: #4ade80;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-reply:hover {
+            background: rgba(0, 105, 92, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: rgba(40, 40, 70, 0.8);
+            border: 1px solid rgba(200, 199, 255, 0.2);
+            padding: 14px 18px;
+            border-radius: 12px;
+            color: #eee;
+            font-size: 14px;
+            resize: none;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #4ade80;
+        }
+
+        .chat-input::placeholder {
+            color: #666;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #00695c, #004d40);
+            border: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 105, 92, 0.4);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Language Toggle */
+        .language-toggle {
+            display: flex;
+            gap: 8px;
+            background: rgba(40, 40, 70, 0.8);
+            padding: 4px;
+            border-radius: 10px;
+        }
+
+        .lang-btn {
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: #888;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .lang-btn.active {
+            background: rgba(0, 105, 92, 0.5);
+            color: #4ade80;
+        }
+
+        /* Scrollbar */
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(200, 199, 255, 0.05);
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(200, 199, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .no-patient-selected {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .no-patient-selected .icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .no-patient-selected h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #888;
+        }
+
+        .no-patient-selected p {
+            font-size: 14px;
+        }
+
+        /* New Patient Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e1e32 0%, #2a2a45 100%);
+            border: 2px solid rgba(200, 199, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-header h3 {
+            font-size: 20px;
+            color: #4ade80;
+        }
+
+        .close-modal {
+            background: rgba(239, 68, 68, 0.2);
+            border: none;
+            color: #f87171;
+            font-size: 24px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #aaa;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(40, 40, 70, 0.8);
+            border: 1px solid rgba(200, 199, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .modal-btn.cancel {
+            background: rgba(100, 100, 120, 0.3);
+            color: #aaa;
+        }
+
+        .modal-btn.submit {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>
+            <span class="logo">🏥</span>
+            HSE Multi-Agent Manager
+        </h1>
+        <nav class="nav-links">
+            <a href="patient.html" class="nav-link active">👤 Patient Portal</a>
+            <a href="nurse.html" class="nav-link">👩‍⚕️ Nurse Triage</a>
+            <a href="admin.html" class="nav-link">📊 Admin Dashboard</a>
+        </nav>
+        <div class="language-toggle">
+            <button class="lang-btn active" onclick="setLanguage('en')">English</button>
+            <button class="lang-btn" onclick="setLanguage('ga')">Gaeilge</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Patient Selection Panel -->
+        <div class="patient-panel">
+            <div class="panel-title">👥 Select Patient Profile</div>
+            
+            <div id="patientList"></div>
+            
+            <button class="add-patient-btn" onclick="openNewPatientModal()">
+                ➕ Add New Patient
+            </button>
+
+            <div class="selected-patient-info" id="selectedPatientInfo" style="display: none;">
+                <h4>📋 Selected Patient Details</h4>
+                <div class="info-grid" id="patientInfoGrid"></div>
+            </div>
+        </div>
+
+        <!-- Chat Panel -->
+        <div class="chat-panel">
+            <div class="chat-header">
+                <h2>💬 <span id="chatTitle">Symptom Assessment Chat</span></h2>
+                <div class="chat-status">
+                    <span class="status-dot"></span>
+                    <span>AI Assistant Ready</span>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="no-patient-selected" id="noPatientMessage">
+                    <div class="icon">👈</div>
+                    <h3>Select a Patient to Begin</h3>
+                    <p>Choose a patient profile from the left panel to start the symptom assessment.</p>
+                </div>
+            </div>
+
+            <div class="chat-input-area" id="chatInputArea" style="display: none;">
+                <div class="quick-replies" id="quickReplies"></div>
+                <div class="input-row">
+                    <textarea 
+                        class="chat-input" 
+                        id="chatInput" 
+                        placeholder="Describe your symptoms here..."
+                        rows="1"
+                    ></textarea>
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                        Send 📤
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Patient Modal -->
+    <div class="modal-overlay" id="newPatientModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>➕ Add New Patient</h3>
+                <button class="close-modal" onclick="closeNewPatientModal()">✕</button>
+            </div>
+            
+            <form id="newPatientForm" onsubmit="submitNewPatient(event)">
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" id="newPatientName" required placeholder="Enter patient name">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Age *</label>
+                        <input type="number" id="newPatientAge" required min="1" max="120" placeholder="Age">
+                    </div>
+                    <div class="form-group">
+                        <label>Gender *</label>
+                        <select id="newPatientGender" required>
+                            <option value="">Select</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Blood Type</label>
+                        <select id="newPatientBlood">
+                            <option value="">Unknown</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="newPatientPhone" placeholder="085 123 4567">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Allergies (if any)</label>
+                    <input type="text" id="newPatientAllergies" placeholder="e.g., Penicillin, Peanuts">
+                </div>
+
+                <div class="form-group">
+                    <label>Previous Medical Conditions</label>
+                    <input type="text" id="newPatientConditions" placeholder="e.g., Diabetes, Asthma">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="modal-btn cancel" onclick="closeNewPatientModal()">Cancel</button>
+                    <button type="submit" class="modal-btn submit">Add Patient</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'http://localhost:8000';
+        let currentLanguage = 'en';
+        let selectedPatient = null;
+        let conversationState = 'idle'; // idle, gathering, confirming, complete
+        let collectedSymptoms = [];
+        let triageResult = null;
+
+        // 5 Preset Patients with full medical information
+        const patients = [
+            {
+                id: 1,
+                name: "Seán O'Brien",
+                age: 45,
+                gender: "Male",
+                bloodType: "O+",
+                previousIllness: "Hypertension",
+                allergies: "Penicillin",
+                emergencyContact: "Mary O'Brien (Wife)",
+                ppsNumber: "1234567A",
+                location: { lat: 51.8969, lng: -8.4863 } // Cork City Centre
+            },
+            {
+                id: 2,
+                name: "Aoife Murphy",
+                age: 32,
+                gender: "Female",
+                bloodType: "A-",
+                previousIllness: "Asthma",
+                allergies: "None",
+                emergencyContact: "John Murphy (Husband)",
+                ppsNumber: "2345678B",
+                location: { lat: 51.8932, lng: -8.4761 } // Douglas area
+            },
+            {
+                id: 3,
+                name: "Pádraig Walsh",
+                age: 67,
+                gender: "Male",
+                bloodType: "B+",
+                previousIllness: "Type 2 Diabetes, Heart Disease",
+                allergies: "Aspirin",
+                emergencyContact: "Siobhán Walsh (Daughter)",
+                ppsNumber: "3456789C",
+                location: { lat: 52.1345, lng: -8.6548 } // Mallow area
+            },
+            {
+                id: 4,
+                name: "Niamh Fitzgerald",
+                age: 28,
+                gender: "Female",
+                bloodType: "AB+",
+                previousIllness: "None",
+                allergies: "Shellfish",
+                emergencyContact: "Declan Fitzgerald (Father)",
+                ppsNumber: "4567890D",
+                location: { lat: 51.8856, lng: -8.5297 } // Ballincollig area
+            },
+            {
+                id: 5,
+                name: "Cormac Kelly",
+                age: 55,
+                gender: "Male",
+                bloodType: "O-",
+                previousIllness: "COPD, Previous Stroke",
+                allergies: "Sulfa drugs",
+                emergencyContact: "Brigid Kelly (Wife)",
+                ppsNumber: "5678901E",
+                location: { lat: 51.6838, lng: -9.4528 } // Bantry area
+            }
+        ];
+
+        const messages = {
+            en: {
+                welcome: "Hello! I'm your HSE health assistant. I'll help assess your symptoms today.",
+                askSymptoms: "Please describe what symptoms you're experiencing. Take your time and include as much detail as possible.",
+                askMore: "Thank you. Are there any other symptoms you'd like to mention? You can say 'no' or 'done' if you've described everything.",
+                askDuration: "How long have you been experiencing these symptoms?",
+                askPain: "On a scale of 1-10, how would you rate your pain or discomfort?",
+                confirming: "Let me summarize what you've told me:",
+                confirmQuestion: "Is this correct? Say 'yes' to proceed with triage or 'no' to add more details.",
+                processing: "Thank you. I'm now analyzing your symptoms and finding the best care option for you...",
+                quickReplies: ["I have chest pain", "I have a headache", "I fell and hurt myself", "I have trouble breathing", "Done describing symptoms"]
+            },
+            ga: {
+                welcome: "Dia duit! Is mise do chúntóir sláinte FSS. Cuideoidh mé leat do shiomptóim a mheasúnú inniu.",
+                askSymptoms: "Déan cur síos ar na siomptóim atá agat le do thoil. Tóg d'am agus cuir isteach an oiread sonraí agus is féidir.",
+                askMore: "Go raibh maith agat. An bhfuil aon siomptóim eile a theastaíonn uait a lua? Is féidir leat 'níl' nó 'críochnaithe' a rá má tá gach rud curtha síos agat.",
+                askDuration: "Cé chomh fada is atá na siomptóim seo agat?",
+                askPain: "Ar scála 1-10, conas a mheasfá do phian nó do mhíchompord?",
+                confirming: "Lig dom achoimre a dhéanamh ar a ndúirt tú liom:",
+                confirmQuestion: "An bhfuil sé seo ceart? Abair 'tá' le dul ar aghaidh le tríáis nó 'níl' chun tuilleadh sonraí a chur leis.",
+                processing: "Go raibh maith agat. Táim ag anailísiú do shiomptóim anois agus ag aimsiú an rogha cúraim is fearr duit...",
+                quickReplies: ["Tá pian i mo chliabhrach", "Tá tinneas cinn orm", "Thit mé agus ghortaigh mé mé féin", "Tá deacracht agam análú", "Críochnaithe ag cur síos"]
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPatientList();
+            setupInputHandlers();
+        });
+
+        function renderPatientList() {
+            const container = document.getElementById('patientList');
+            container.innerHTML = patients.map(p => `
+                <div class="patient-card" id="patient-${p.id}" onclick="selectPatient(${p.id})">
+                    <div class="name">${p.name}</div>
+                    <div class="details">
+                        <span class="detail-tag">Age: ${p.age}</span>
+                        <span class="detail-tag">${p.gender}</span>
+                        <span class="detail-tag blood-type">🩸 ${p.bloodType}</span>
+                        ${p.previousIllness !== 'None' ? `<span class="detail-tag condition">⚠️ ${p.previousIllness.split(',')[0]}</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectPatient(patientId) {
+            // Remove previous selection
+            document.querySelectorAll('.patient-card').forEach(card => card.classList.remove('selected'));
+            
+            // Select new patient
+            selectedPatient = patients.find(p => p.id === patientId);
+            document.getElementById(`patient-${patientId}`).classList.add('selected');
+            
+            // Show patient info
+            const infoSection = document.getElementById('selectedPatientInfo');
+            const infoGrid = document.getElementById('patientInfoGrid');
+            infoSection.style.display = 'block';
+            infoGrid.innerHTML = `
+                <div class="info-item"><div class="label">Blood Type</div><div class="value">${selectedPatient.bloodType}</div></div>
+                <div class="info-item"><div class="label">Allergies</div><div class="value">${selectedPatient.allergies}</div></div>
+                <div class="info-item" style="grid-column: span 2;"><div class="label">Previous Illness</div><div class="value">${selectedPatient.previousIllness}</div></div>
+                <div class="info-item" style="grid-column: span 2;"><div class="label">Emergency Contact</div><div class="value">${selectedPatient.emergencyContact}</div></div>
+            `;
+            
+            // Start chat
+            startChat();
+        }
+
+        function startChat() {
+            conversationState = 'gathering';
+            collectedSymptoms = [];
+            triageResult = null;
+            
+            const chatMessages = document.getElementById('chatMessages');
+            const chatInputArea = document.getElementById('chatInputArea');
+            const noPatientMessage = document.getElementById('noPatientMessage');
+            
+            noPatientMessage.style.display = 'none';
+            chatInputArea.style.display = 'block';
+            chatMessages.innerHTML = '';
+            
+            // Update chat title
+            document.getElementById('chatTitle').textContent = `Chat with ${selectedPatient.name}`;
+            
+            // Welcome message
+            setTimeout(() => {
+                addMessage(messages[currentLanguage].welcome, 'bot');
+                setTimeout(() => {
+                    addMessage(`I see from your records that you're ${selectedPatient.age} years old${selectedPatient.previousIllness !== 'None' ? ` and have a history of ${selectedPatient.previousIllness}` : ''}. I'll keep this in mind during our assessment.`, 'bot');
+                    setTimeout(() => {
+                        addMessage(messages[currentLanguage].askSymptoms, 'bot');
+                        showQuickReplies();
+                    }, 800);
+                }, 600);
+            }, 300);
+        }
+
+        function showQuickReplies() {
+            const container = document.getElementById('quickReplies');
+            const replies = messages[currentLanguage].quickReplies;
+            container.innerHTML = replies.map(reply => 
+                `<button class="quick-reply" onclick="sendQuickReply('${reply}')">${reply}</button>`
+            ).join('');
+        }
+
+        function sendQuickReply(text) {
+            document.getElementById('chatInput').value = text;
+            sendMessage();
+        }
+
+        function setupInputHandlers() {
+            const input = document.getElementById('chatInput');
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // Auto-resize textarea
+            input.addEventListener('input', () => {
+                input.style.height = 'auto';
+                input.style.height = Math.min(input.scrollHeight, 100) + 'px';
+            });
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            input.value = '';
+            input.style.height = 'auto';
+            addMessage(text, 'user');
+            
+            // Hide quick replies after first message
+            document.getElementById('quickReplies').innerHTML = '';
+            
+            // Process based on conversation state
+            await processUserInput(text);
+        }
+
+        async function processUserInput(text) {
+            const lowerText = text.toLowerCase();
+            
+            if (conversationState === 'gathering') {
+                // Check if user is done
+                if (lowerText.includes('done') || lowerText.includes('no') || lowerText.includes('níl') || lowerText.includes('críochnaithe') || lowerText === "done describing symptoms") {
+                    if (collectedSymptoms.length === 0) {
+                        showTyping();
+                        setTimeout(() => {
+                            hideTyping();
+                            addMessage("I haven't recorded any symptoms yet. Please describe what you're experiencing.", 'bot');
+                            showQuickReplies();
+                        }, 1000);
+                        return;
+                    }
+                    
+                    // Move to confirmation
+                    conversationState = 'confirming';
+                    showTyping();
+                    setTimeout(() => {
+                        hideTyping();
+                        const summary = collectedSymptoms.join(', ');
+                        addMessage(messages[currentLanguage].confirming, 'bot');
+                        setTimeout(() => {
+                            addMessage(`"${summary}"`, 'system');
+                            setTimeout(() => {
+                                addMessage(messages[currentLanguage].confirmQuestion, 'bot');
+                                showConfirmReplies();
+                            }, 500);
+                        }, 400);
+                    }, 1000);
+                } else {
+                    // Add to symptoms
+                    collectedSymptoms.push(text);
+                    showTyping();
+                    setTimeout(() => {
+                        hideTyping();
+                        addMessage(messages[currentLanguage].askMore, 'bot');
+                    }, 1000);
+                }
+            } else if (conversationState === 'confirming') {
+                if (lowerText.includes('yes') || lowerText.includes('tá') || lowerText.includes('correct')) {
+                    // Process triage
+                    conversationState = 'complete';
+                    showTyping();
+                    addMessage(messages[currentLanguage].processing, 'system');
+                    
+                    try {
+                        const result = await submitTriage();
+                        hideTyping();
+                        showTriageResult(result);
+                    } catch (error) {
+                        hideTyping();
+                        addMessage("I apologize, but I encountered an error processing your symptoms. Please try again or contact the hospital directly.", 'bot');
+                    }
+                } else {
+                    // Go back to gathering
+                    conversationState = 'gathering';
+                    showTyping();
+                    setTimeout(() => {
+                        hideTyping();
+                        addMessage("No problem. Please tell me what else you'd like to add.", 'bot');
+                        showQuickReplies();
+                    }, 800);
+                }
+            }
+        }
+
+        function showConfirmReplies() {
+            const container = document.getElementById('quickReplies');
+            container.innerHTML = `
+                <button class="quick-reply" onclick="sendQuickReply('Yes, that is correct')">✅ Yes, correct</button>
+                <button class="quick-reply" onclick="sendQuickReply('No, I want to add more')">❌ No, add more</button>
+            `;
+        }
+
+        async function submitTriage() {
+            const symptomsText = collectedSymptoms.join('. ');
+            
+            const response = await fetch(`${BACKEND_URL}/api/triage-and-assign`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    symptoms: symptomsText,
+                    patient_name: selectedPatient.name,
+                    age: selectedPatient.age,
+                    latitude: selectedPatient.location.lat,
+                    longitude: selectedPatient.location.lng
+                })
+            });
+            
+            if (!response.ok) throw new Error('Triage failed');
+            return await response.json();
+        }
+
+        function showTriageResult(result) {
+            const triage = result.triage;
+            const assignment = result.assignment;
+            
+            const urgencyLabels = {
+                1: 'IMMEDIATE',
+                2: 'Very Urgent',
+                3: 'Urgent',
+                4: 'Standard',
+                5: 'Non-Urgent'
+            };
+            
+            const resultHtml = `
+                <div class="result-card">
+                    <h4>✅ Triage Assessment Complete</h4>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <div class="label">Urgency Level</div>
+                            <div class="value">
+                                <span class="urgency-badge urgency-${triage.triage_level}">${urgencyLabels[triage.triage_level]}</span>
+                            </div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label">Specialty</div>
+                            <div class="value">${triage.specialty_required}</div>
+                        </div>
+                        <div class="result-item" style="grid-column: span 2;">
+                            <div class="label">Assessment</div>
+                            <div class="value">${triage.triage_reason}</div>
+                        </div>
+                        ${triage.detected_language === 'Irish' ? `
+                        <div class="result-item" style="grid-column: span 2;">
+                            <div class="label">Translation</div>
+                            <div class="value">${triage.translated_symptoms || 'N/A'}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                    ${assignment ? `
+                    <h4 style="margin-top: 16px;">🏥 Recommended Hospital</h4>
+                    <div class="result-grid">
+                        <div class="result-item" style="grid-column: span 2;">
+                            <div class="label">Hospital</div>
+                            <div class="value" style="color: #4ade80;">${assignment.hospital_name}</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label">Distance</div>
+                            <div class="value">${assignment.distance_km} km</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label">Reason</div>
+                            <div class="value" style="font-size: 12px;">${assignment.reason}</div>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            addMessage(resultHtml, 'result', true);
+            
+            // Final message
+            setTimeout(() => {
+                addMessage("Your information has been sent to the nursing staff. They will review your case shortly. If your condition worsens, please call emergency services (112) immediately.", 'bot');
+            }, 500);
+        }
+
+        function addMessage(text, type, isHtml = false) {
+            const container = document.getElementById('chatMessages');
+            const msg = document.createElement('div');
+            msg.className = `message ${type}`;
+            if (isHtml) {
+                msg.innerHTML = text;
+            } else {
+                msg.textContent = text;
+            }
+            container.appendChild(msg);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function showTyping() {
+            const container = document.getElementById('chatMessages');
+            const typing = document.createElement('div');
+            typing.className = 'typing-indicator';
+            typing.id = 'typingIndicator';
+            typing.innerHTML = '<span></span><span></span><span></span>';
+            container.appendChild(typing);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function hideTyping() {
+            const typing = document.getElementById('typingIndicator');
+            if (typing) typing.remove();
+        }
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.lang-btn:${lang === 'en' ? 'first-child' : 'last-child'}`).classList.add('active');
+            
+            if (selectedPatient && conversationState === 'gathering') {
+                showQuickReplies();
+            }
+        }
+
+        // New Patient Modal Functions
+        function openNewPatientModal() {
+            document.getElementById('newPatientModal').classList.add('active');
+        }
+
+        function closeNewPatientModal() {
+            document.getElementById('newPatientModal').classList.remove('active');
+            document.getElementById('newPatientForm').reset();
+        }
+
+        function submitNewPatient(event) {
+            event.preventDefault();
+            
+            const newPatient = {
+                name: document.getElementById('newPatientName').value,
+                age: parseInt(document.getElementById('newPatientAge').value),
+                gender: document.getElementById('newPatientGender').value,
+                bloodType: document.getElementById('newPatientBlood').value || 'Unknown',
+                phone: document.getElementById('newPatientPhone').value || 'Not provided',
+                allergies: document.getElementById('newPatientAllergies').value || 'None',
+                previousIllness: document.getElementById('newPatientConditions').value || 'None',
+                location: { lat: 51.8985, lng: -8.4756 } // Default to Cork City
+            };
+
+            // Add to patients array
+            patients.push(newPatient);
+            
+            // Re-render patient list
+            renderPatientList();
+            
+            // Auto-select the new patient
+            selectPatient(newPatient);
+            
+            // Close modal
+            closeNewPatientModal();
+            
+            // Show success message
+            alert(`✅ Patient "${newPatient.name}" added successfully!`);
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('newPatientModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeNewPatientModal();
+            }
+        });
+    </script>
+</body>
+</html>

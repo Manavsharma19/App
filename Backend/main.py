@@ -4,6 +4,7 @@ HSE Multi-Agent Manager - Backend with SQLite Database
 Features:
 - SQLite database for persistent storage
 - OR-Tools constraint programming for patient-hospital assignment
+- DISTANCE-BASED OPTIMIZATION (nearest hospital as top priority)
 - Configurable LLM endpoint (supports custom fine-tuned models)
 - Auto-triage with bilingual support (English/Irish)
 - Real-time hospital capacity tracking
@@ -19,19 +20,47 @@ from sqlalchemy.orm import Session
 import httpx
 import json
 import os
+import math
 from datetime import datetime
 
 # Database imports
 from database import engine, get_db
 import models
 
+
+# ============================================
+# DISTANCE CALCULATION
+# ============================================
+def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """
+    Calculate the great-circle distance between two points on Earth (in km).
+    Used for finding nearest hospital to patient.
+    """
+    R = 6371  # Earth's radius in kilometers
+    
+    lat1_rad = math.radians(lat1)
+    lat2_rad = math.radians(lat2)
+    delta_lat = math.radians(lat2 - lat1)
+    delta_lon = math.radians(lon2 - lon1)
+    
+    a = math.sin(delta_lat / 2) ** 2 + \
+        math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(delta_lon / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    
+    return R * c
+
+
+# Default patient location (Cork City Centre) when not provided
+DEFAULT_PATIENT_LOCATION = {"lat": 51.8985, "lng": -8.4756}
+
+
 # ============================================
 # APP SETUP
 # ============================================
 app = FastAPI(
     title="HSE Multi-Agent Manager",
-    description="AI-powered patient triage and hospital optimization",
-    version="1.0.0"
+    description="AI-powered patient triage and hospital optimization with distance-based assignment",
+    version="2.0.0"
 )
 
 # Allow frontend to call this backend
@@ -72,44 +101,67 @@ class LLMConfig:
 
 
 # ============================================
-# STARTUP: INITIALIZE DATABASE
+# STARTUP: INITIALIZE DATABASE WITH 5 CORK HOSPITALS
 # ============================================
 @app.on_event("startup")
 def initialize_database():
-    """Initialize database with default hospitals if empty"""
+    """Initialize database with 5 Cork-area hospitals if empty"""
     db = next(get_db())
     
     # Check if hospitals exist
     if db.query(models.Hospital).count() == 0:
-        # Default hospitals
+        # 5 Cork-area hospitals with real locations
         hospitals = [
             {
                 "id": 0,
-                "name": "Cork University Hospital",
-                "beds_total": 50,
-                "beds_free": 12,
+                "name": "Cork University Hospital (CUH)",
+                "beds_total": 80,
+                "beds_free": 15,
                 "wait_time": 45,
-                "specialties": ["Cardiology", "Neurology", "General", "Trauma"],
-                "location": {"lat": 51.8856, "lng": -8.4897}
+                "specialties": ["Cardiology", "Neurology", "General", "Trauma", "Oncology", "Maternity"],
+                "location": {"lat": 51.8856, "lng": -8.4897},
+                "address": "Wilton, Cork"
             },
             {
                 "id": 1,
                 "name": "Mercy University Hospital",
-                "beds_total": 40,
-                "beds_free": 18,
-                "wait_time": 20,
-                "specialties": ["General", "Maternity", "Oncology"],
-                "location": {"lat": 51.8932, "lng": -8.4961}
+                "beds_total": 50,
+                "beds_free": 12,
+                "wait_time": 30,
+                "specialties": ["General", "Oncology", "Cardiology"],
+                "location": {"lat": 51.8932, "lng": -8.4961},
+                "address": "Grenville Place, Cork City"
             },
             {
                 "id": 2,
+                "name": "South Infirmary Victoria University Hospital",
+                "beds_total": 40,
+                "beds_free": 18,
+                "wait_time": 20,
+                "specialties": ["Orthopaedics", "General", "ENT", "Ophthalmology"],
+                "location": {"lat": 51.8912, "lng": -8.4823},
+                "address": "Old Blackrock Road, Cork"
+            },
+            {
+                "id": 3,
                 "name": "Mallow General Hospital",
+                "beds_total": 30,
+                "beds_free": 10,
+                "wait_time": 15,
+                "specialties": ["General", "Orthopaedics", "Geriatrics"],
+                "location": {"lat": 52.1345, "lng": -8.6548},
+                "address": "Mallow, Co. Cork"
+            },
+            {
+                "id": 4,
+                "name": "Bantry General Hospital",
                 "beds_total": 25,
                 "beds_free": 8,
-                "wait_time": 15,
-                "specialties": ["General", "Orthopaedics"],
-                "location": {"lat": 52.1345, "lng": -8.6548}
-            }
+                "wait_time": 10,
+                "specialties": ["General", "Geriatrics", "Palliative Care"],
+                "location": {"lat": 51.6838, "lng": -9.4528},
+                "address": "Bantry, West Cork"
+            },
         ]
         
         for h in hospitals:
@@ -117,7 +169,7 @@ def initialize_database():
             db.add(db_hospital)
         
         db.commit()
-        print("✅ Database initialized with default hospitals")
+        print("✅ Database initialized with 5 Cork-area hospitals")
     
     db.close()
 
@@ -135,7 +187,7 @@ Given patient symptoms, you MUST return ONLY valid JSON with no additional text,
   "translated_symptoms": "English translation if input was Irish, otherwise null",
   "triage_level": 1-5,
   "triage_reason": "Brief clinical explanation for the triage level",
-  "specialty_required": "One of: Cardiology, Neurology, General, Orthopaedics, Trauma, Maternity, Oncology",
+  "specialty_required": "One of: Cardiology, Neurology, General, Orthopaedics, Trauma, Maternity, Oncology, ENT, Ophthalmology, Geriatrics, Palliative Care",
   "chief_complaint": "Main issue in 3-5 words",
   "pain_level": 1-10 or null if not mentioned,
   "duration": "How long symptoms have been present, or null"
@@ -151,7 +203,7 @@ Triage Levels (Manchester Triage System):
 IMPORTANT: Return ONLY the JSON object, no other text."""
 
 
-async def call_llm(symptoms: str, system_prompt: str) -> dict:
+async def call_llm(symptoms: str) -> dict:
     """
     Call the configured LLM for triage assessment.
     Supports custom endpoints, Anthropic, and OpenAI.
@@ -168,7 +220,7 @@ async def call_llm(symptoms: str, system_prompt: str) -> dict:
             payload = {
                 "model": LLMConfig.CUSTOM_MODEL_NAME,
                 "messages": [
-                    {"role": "system", "content": system_prompt},
+                    {"role": "system", "content": TRIAGE_SYSTEM_PROMPT},
                     {"role": "user", "content": f"Patient says: {symptoms}"}
                 ],
                 "temperature": 0.3,
@@ -217,7 +269,7 @@ async def call_llm(symptoms: str, system_prompt: str) -> dict:
                 json={
                     "model": LLMConfig.ANTHROPIC_MODEL,
                     "max_tokens": 1024,
-                    "system": system_prompt,
+                    "system": TRIAGE_SYSTEM_PROMPT,
                     "messages": [
                         {"role": "user", "content": f"Patient says: {symptoms}"}
                     ]
@@ -241,7 +293,7 @@ async def call_llm(symptoms: str, system_prompt: str) -> dict:
                 json={
                     "model": LLMConfig.OPENAI_MODEL,
                     "messages": [
-                        {"role": "system", "content": system_prompt},
+                        {"role": "system", "content": TRIAGE_SYSTEM_PROMPT},
                         {"role": "user", "content": f"Patient says: {symptoms}"}
                     ]
                 }
@@ -268,6 +320,8 @@ def mock_triage(symptoms: str) -> dict:
     has_head = any(word in lower for word in ["head", "ceann", "vision", "dizzy"])
     has_broken = any(word in lower for word in ["broke", "fracture", "wrist", "ankle", "fell"])
     has_breath = "breath" in lower or "anáil" in lower
+    has_eye = any(word in lower for word in ["eye", "súil", "vision", "blind"])
+    has_ear = any(word in lower for word in ["ear", "cluas", "hearing", "deaf"])
     
     # Default values
     specialty = "General"
@@ -297,6 +351,18 @@ def mock_triage(symptoms: str) -> dict:
         reason = "Suspected fracture requires imaging"
         complaint = "Suspected fracture"
         pain = 8
+    elif has_eye:
+        specialty = "Ophthalmology"
+        level = 3
+        reason = "Eye symptoms require specialist evaluation"
+        complaint = "Eye problem"
+        pain = 4
+    elif has_ear:
+        specialty = "ENT"
+        level = 4
+        reason = "Ear symptoms for ENT assessment"
+        complaint = "Ear problem"
+        pain = 3
     
     return {
         "detected_language": "Irish" if is_irish else "English",
@@ -311,16 +377,23 @@ def mock_triage(symptoms: str) -> dict:
 
 
 # ============================================
-# OR-TOOLS OPTIMIZATION
+# OR-TOOLS OPTIMIZATION (DISTANCE-BASED)
 # ============================================
 def optimize_patient_assignment(db: Session) -> dict:
     """
     Use OR-Tools CP-SAT solver to optimally assign pending patients to hospitals.
-    Objective: Minimize total cost (wait_time × urgency + capacity penalty)
+    
+    🎯 DISTANCE IS THE TOP PRIORITY - nearest suitable hospital is preferred.
+    
+    Objective: Minimize total cost with weighted components:
+        Total Cost = (distance × DISTANCE_WEIGHT) + (wait_time × urgency × WAIT_WEIGHT) + (capacity_penalty × CAPACITY_WEIGHT)
+    
+    Where: DISTANCE_WEIGHT >> WAIT_WEIGHT > CAPACITY_WEIGHT
+    
     Constraints:
     - Each patient assigned to exactly one hospital
     - Hospital capacity not exceeded
-    - Specialty requirements must be met
+    - Specialty requirements must be met (HARD constraint)
     """
     # Get pending patients and hospitals from database
     pending_patients = db.query(models.Patient).filter(models.Patient.status == "pending").all()
@@ -332,6 +405,12 @@ def optimize_patient_assignment(db: Session) -> dict:
     model = cp_model.CpModel()
     num_patients = len(pending_patients)
     num_hospitals = len(hospitals)
+    
+    # ===== WEIGHT CONFIGURATION =====
+    # DISTANCE IS TOP PRIORITY - highest weight
+    DISTANCE_WEIGHT = 1000  # Multiplier for distance cost (TOP PRIORITY)
+    WAIT_WEIGHT = 10        # Multiplier for wait time cost
+    CAPACITY_WEIGHT = 1     # Multiplier for capacity penalty (lowest priority)
     
     # ===== DECISION VARIABLES =====
     x = {}
@@ -349,7 +428,7 @@ def optimize_patient_assignment(db: Session) -> dict:
             sum(x[p, h] for p in range(num_patients)) <= hospitals[h].beds_free
         )
     
-    # ===== CONSTRAINT 3: Specialty must match =====
+    # ===== CONSTRAINT 3: Specialty must match (HARD CONSTRAINT) =====
     for p in range(num_patients):
         patient = pending_patients[p]
         specialty_needed = patient.specialty_required.lower()
@@ -364,7 +443,25 @@ def optimize_patient_assignment(db: Session) -> dict:
             if not has_specialty:
                 model.Add(x[p, h] == 0)
     
-    # ===== OBJECTIVE: Minimize total cost =====
+    # ===== PRE-CALCULATE DISTANCES =====
+    distances = {}
+    for p in range(num_patients):
+        patient = pending_patients[p]
+        # Get patient location (use stored location or default)
+        patient_loc = patient.location if patient.location else DEFAULT_PATIENT_LOCATION
+        
+        for h in range(num_hospitals):
+            hospital = hospitals[h]
+            hospital_loc = hospital.location
+            
+            # Calculate distance in km using Haversine formula
+            dist_km = haversine_distance(
+                patient_loc["lat"], patient_loc["lng"],
+                hospital_loc["lat"], hospital_loc["lng"]
+            )
+            distances[p, h] = dist_km
+    
+    # ===== OBJECTIVE: Minimize total cost (DISTANCE IS TOP PRIORITY) =====
     cost_terms = []
     for p in range(num_patients):
         patient = pending_patients[p]
@@ -373,15 +470,21 @@ def optimize_patient_assignment(db: Session) -> dict:
         
         for h in range(num_hospitals):
             hospital = hospitals[h]
-            wait_cost = hospital.wait_time * urgency_weight
             
+            # ===== COST COMPONENT 1: DISTANCE (TOP PRIORITY) =====
+            distance_cost = int(distances[p, h] * 100) * DISTANCE_WEIGHT
+            
+            # ===== COST COMPONENT 2: Wait time (weighted by urgency) =====
+            wait_cost = hospital.wait_time * urgency_weight * WAIT_WEIGHT
+            
+            # ===== COST COMPONENT 3: Capacity utilization penalty =====
             if hospital.beds_total > 0:
                 occupancy_ratio = (hospital.beds_total - hospital.beds_free) / hospital.beds_total
-                capacity_penalty = int(occupancy_ratio * 100)
+                capacity_penalty = int(occupancy_ratio * 100) * CAPACITY_WEIGHT
             else:
-                capacity_penalty = 1000
+                capacity_penalty = 1000 * CAPACITY_WEIGHT
             
-            total_cost = wait_cost + capacity_penalty
+            total_cost = distance_cost + wait_cost + capacity_penalty
             cost_terms.append(x[p, h] * total_cost)
     
     model.Minimize(sum(cost_terms))
@@ -402,31 +505,37 @@ def optimize_patient_assignment(db: Session) -> dict:
                     patient = pending_patients[p]
                     hospital = hospitals[h]
                     
+                    # Get distance for this assignment
+                    dist_km = distances[p, h]
+                    
                     # Update patient record
                     patient.status = "assigned"
                     patient.assigned_hospital = hospital.name
                     patient.assigned_at = datetime.now()
+                    patient.distance_km = round(dist_km, 2)
                     
                     # Update hospital capacity
                     hospital.beds_free -= 1
                     
-                    # Log activity
+                    # Log activity with distance
                     activity = models.Activity(
                         time=datetime.now().strftime("%H:%M"),
                         patient_id=patient.patient_id,
                         hospital=hospital.name,
                         specialty=patient.specialty_required,
-                        urgency=patient.triage_level
+                        urgency=patient.triage_level,
+                        distance_km=round(dist_km, 2)
                     )
                     db.add(activity)
                     
-                    # Create assignment record
+                    # Create assignment record with distance info
                     assignment = {
                         "patient_id": patient.patient_id,
                         "patient": patient.to_dict(),
                         "hospital_id": hospital.id,
                         "hospital_name": hospital.name,
-                        "reason": f"{hospital.beds_free + 1} beds available, {hospital.wait_time} min wait, {patient.specialty_required} department"
+                        "distance_km": round(dist_km, 2),
+                        "reason": f"Nearest suitable hospital ({dist_km:.1f} km), {hospital.beds_free + 1} beds, ~{hospital.wait_time} min wait, {patient.specialty_required} dept"
                     }
                     assignments.append(assignment)
         
@@ -461,10 +570,12 @@ def root():
     """Health check and API info"""
     return {
         "name": "HSE Multi-Agent Manager API",
-        "version": "1.0.0",
+        "version": "2.0.0",
         "status": "running",
         "llm_provider": LLMConfig.PROVIDER,
         "database": "SQLite",
+        "optimization": "Distance-based (nearest hospital priority)",
+        "hospitals_count": 5,
         "endpoints": [
             "POST /api/triage - Triage a patient",
             "POST /api/optimize - Run OR-Tools optimization",
@@ -492,4 +603,6 @@ if __name__ == "__main__":
     print("🏥 Starting HSE Multi-Agent Manager Backend...")
     print(f"📡 LLM Provider: {LLMConfig.PROVIDER}")
     print(f"💾 Database: SQLite (hse_triage.db)")
+    print(f"🏥 Hospitals: 5 Cork-area facilities")
+    print(f"📍 Distance-based optimization ENABLED (nearest hospital priority)")
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSE Admin Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16162a 100%);
+            color: #eee;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #5350c4 0%, #3d39ac 100%);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(83, 80, 196, 0.3);
+        }
+        .header h1 { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .header .logo { width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+        .nav-links { display: flex; gap: 12px; }
+        .nav-link { color: white; text-decoration: none; background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; font-size: 13px; transition: all 0.2s; }
+        .nav-link:hover { background: rgba(255,255,255,0.2); }
+        .nav-link.active { background: rgba(255,255,255,0.25); font-weight: 600; }
+        .header .status { display: flex; align-items: center; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 20px; }
+        .status-dot { width: 10px; height: 10px; background: #4ade80; border-radius: 50%; animation: pulse 2s infinite; }
+        .status-dot.disconnected { background: #ef4444; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .config-bar { background: rgba(61, 57, 172, 0.3); padding: 12px 24px; display: flex; gap: 20px; align-items: center; border-bottom: 1px solid rgba(200, 199, 255, 0.1); flex-wrap: wrap; }
+        .config-bar label { color: #c8c7ff; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+        .config-bar input { background: rgba(30, 30, 50, 0.8); border: 1px solid rgba(200, 199, 255, 0.2); padding: 8px 12px; border-radius: 6px; color: #eee; font-size: 13px; width: 280px; }
+        .config-btn { background: rgba(200, 199, 255, 0.1); border: 1px solid rgba(200, 199, 255, 0.2); padding: 8px 16px; border-radius: 6px; color: #c8c7ff; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+        .config-btn:hover { background: rgba(200, 199, 255, 0.2); }
+        .config-btn.danger { border-color: rgba(239, 68, 68, 0.3); color: #f87171; }
+        .optimization-badge { background: linear-gradient(135deg, #10b981, #059669); padding: 6px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-left: auto; }
+        .dashboard-container { padding: 24px; max-width: 1600px; margin: 0 auto; }
+        .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 28px; }
+        .stat-card { background: rgba(30, 30, 50, 0.6); border: 1px solid rgba(200, 199, 255, 0.1); border-radius: 16px; padding: 20px; text-align: center; }
+        .stat-card .value { font-size: 32px; font-weight: 700; color: #c8c7ff; margin-bottom: 6px; }
+        .stat-card .label { font-size: 12px; color: #888; text-transform: uppercase; }
+        .stat-card.highlight { border-color: #5350c4; box-shadow: 0 0 20px rgba(83, 80, 196, 0.2); }
+        .stat-card.green .value { color: #4ade80; }
+        .stat-card.orange .value { color: #fbbf24; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .section-header h2 { font-size: 18px; font-weight: 600; color: #c8c7ff; }
+        .live-indicator { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #888; }
+        .hospitals-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 32px; }
+        @media (max-width: 1400px) { .hospitals-grid, .stats-row { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 900px) { .hospitals-grid, .stats-row { grid-template-columns: repeat(2, 1fr); } }
+        .hospital-card { background: rgba(30, 30, 50, 0.6); border: 1px solid rgba(200, 199, 255, 0.1); border-radius: 16px; padding: 20px; transition: all 0.3s; }
+        .hospital-card:hover { border-color: rgba(200, 199, 255, 0.3); transform: translateY(-2px); }
+        .hospital-card h3 { font-size: 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; color: #eee; }
+        .hospital-card h3 .icon { width: 36px; height: 36px; background: linear-gradient(135deg, #5350c4, #3d39ac); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+        .hospital-card .address { font-size: 11px; color: #888; margin-bottom: 12px; }
+        .capacity-bar { height: 10px; background: rgba(200, 199, 255, 0.1); border-radius: 5px; overflow: hidden; margin-bottom: 10px; }
+        .capacity-fill { height: 100%; border-radius: 5px; transition: width 0.6s; background: linear-gradient(90deg, #4ade80, #22c55e); }
+        .capacity-fill.medium { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+        .capacity-fill.high { background: linear-gradient(90deg, #f87171, #ef4444); }
+        .hospital-stats { display: flex; justify-content: space-between; font-size: 13px; color: #999; margin-bottom: 14px; }
+        .hospital-specialties { display: flex; flex-wrap: wrap; gap: 6px; }
+        .specialty-tag { background: rgba(200, 199, 255, 0.1); padding: 4px 8px; border-radius: 6px; font-size: 10px; color: #c8c7ff; border: 1px solid rgba(200, 199, 255, 0.15); }
+        .two-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        @media (max-width: 1000px) { .two-columns { grid-template-columns: 1fr; } }
+        .activity-section, .pending-section { background: rgba(30, 30, 50, 0.6); border: 1px solid rgba(200, 199, 255, 0.1); border-radius: 16px; overflow: hidden; }
+        .activity-section .section-header, .pending-section .section-header { padding: 16px 20px; margin-bottom: 0; background: rgba(40, 40, 70, 0.4); border-bottom: 1px solid rgba(200, 199, 255, 0.1); }
+        .activity-log, .pending-list { padding: 12px; max-height: 400px; overflow-y: auto; }
+        .activity-item { display: flex; align-items: center; padding: 12px; border-radius: 10px; margin-bottom: 8px; background: rgba(40, 40, 70, 0.4); }
+        .activity-item.new { background: rgba(83, 80, 196, 0.2); border-left: 3px solid #5350c4; }
+        .activity-time { font-size: 12px; color: #888; min-width: 50px; }
+        .activity-content { flex: 1; font-size: 13px; }
+        .activity-hospital { color: #c8c7ff; font-weight: 500; }
+        .activity-urgency { padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; }
+        .activity-urgency.urgent { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .activity-urgency.standard { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+        .activity-urgency.low { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .pending-item { display: flex; align-items: center; padding: 12px; border-radius: 10px; margin-bottom: 8px; background: rgba(40, 40, 70, 0.4); }
+        .pending-id { font-size: 12px; color: #c8c7ff; font-weight: 600; min-width: 60px; }
+        .pending-symptoms { flex: 1; font-size: 13px; color: #aaa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .pending-specialty { font-size: 11px; color: #888; background: rgba(200, 199, 255, 0.1); padding: 4px 10px; border-radius: 6px; }
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: #666; }
+        .empty-state .icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1><span class="logo">📊</span>HSE Admin Dashboard</h1>
+        <nav class="nav-links">
+            <a href="patient.html" class="nav-link">👤 Patient Portal</a>
+            <a href="nurse.html" class="nav-link">👩‍⚕️ Nurse Triage</a>
+            <a href="admin.html" class="nav-link active">📊 Admin Dashboard</a>
+        </nav>
+        <div class="status">
+            <span class="status-dot" id="connectionStatus"></span>
+            <span id="connectionText">Connecting...</span>
+        </div>
+    </header>
+
+    <div class="config-bar">
+        <label>🔗 Backend URL:
+            <input type="text" id="backendUrl" value="http://localhost:8000">
+        </label>
+        <button class="config-btn" onclick="testConnection()">Test Connection</button>
+        <button class="config-btn danger" onclick="resetBackend()">Reset All Data</button>
+        <span class="optimization-badge">📍 Distance-Based Optimization</span>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="stats-row">
+            <div class="stat-card highlight">
+                <div class="value" id="totalHospitals">5</div>
+                <div class="label">Hospitals</div>
+            </div>
+            <div class="stat-card green">
+                <div class="value" id="totalBeds">--</div>
+                <div class="label">Beds Available</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="pendingCount">--</div>
+                <div class="label">Pending Patients</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="assignedCount">--</div>
+                <div class="label">Assigned Today</div>
+            </div>
+            <div class="stat-card orange">
+                <div class="value" id="avgWait">--</div>
+                <div class="label">Avg Wait (min)</div>
+            </div>
+        </div>
+
+        <div class="section-header">
+            <h2>🏥 Cork Hospital Network (5 Hospitals)</h2>
+            <div class="live-indicator"><div class="status-dot"></div> Auto-refresh every 5s</div>
+        </div>
+
+        <div class="hospitals-grid" id="hospitalsGrid"></div>
+
+        <div class="two-columns">
+            <div class="activity-section">
+                <div class="section-header"><h2>📋 Recent Assignments</h2></div>
+                <div class="activity-log" id="activityLog"></div>
+            </div>
+            <div class="pending-section">
+                <div class="section-header"><h2>⏳ Pending Patients</h2></div>
+                <div class="pending-list" id="pendingList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let BACKEND_URL = 'http://localhost:8000';
+        let isConnected = false;
+        let hospitals = [];
+        let refreshInterval = null;
+
+        async function testConnection() {
+            BACKEND_URL = document.getElementById('backendUrl').value.trim();
+            try {
+                const response = await fetch(`${BACKEND_URL}/`);
+                if (response.ok) {
+                    const data = await response.json();
+                    isConnected = true;
+                    document.getElementById('connectionStatus').classList.remove('disconnected');
+                    document.getElementById('connectionText').textContent = `Connected (${data.llm_provider})`;
+                    await refreshData();
+                    startAutoRefresh();
+                }
+            } catch (error) {
+                isConnected = false;
+                document.getElementById('connectionStatus').classList.add('disconnected');
+                document.getElementById('connectionText').textContent = 'Disconnected';
+                stopAutoRefresh();
+            }
+        }
+
+        async function fetchHospitals() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/hospitals`);
+                const data = await response.json();
+                hospitals = data.hospitals;
+                document.getElementById('totalBeds').textContent = data.total_beds_free;
+                document.getElementById('totalHospitals').textContent = hospitals.length;
+                const avgWait = Math.round(hospitals.reduce((sum, h) => sum + h.wait_time, 0) / hospitals.length);
+                document.getElementById('avgWait').textContent = avgWait;
+                renderHospitals();
+            } catch (error) {
+                console.error('Failed to fetch hospitals:', error);
+            }
+        }
+
+        async function fetchActivity() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/activity`);
+                const data = await response.json();
+                renderActivity(data.activity);
+            } catch (error) {
+                console.error('Failed to fetch activity:', error);
+            }
+        }
+
+        async function fetchPatients() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/patients`);
+                const data = await response.json();
+                document.getElementById('pendingCount').textContent = data.pending_count;
+                document.getElementById('assignedCount').textContent = data.assigned_count;
+                renderPending(data.pending);
+            } catch (error) {
+                console.error('Failed to fetch patients:', error);
+            }
+        }
+
+        async function refreshData() {
+            await Promise.all([fetchHospitals(), fetchActivity(), fetchPatients()]);
+        }
+
+        async function resetBackend() {
+            if (!confirm('Are you sure you want to reset all data?')) return;
+            try {
+                await fetch(`${BACKEND_URL}/api/reset`, { method: 'POST' });
+                await refreshData();
+            } catch (error) {
+                console.error('Failed to reset:', error);
+            }
+        }
+
+        function startAutoRefresh() {
+            stopAutoRefresh();
+            refreshInterval = setInterval(refreshData, 5000);
+        }
+
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+        }
+
+        function renderHospitals() {
+            const grid = document.getElementById('hospitalsGrid');
+            if (hospitals.length === 0) {
+                grid.innerHTML = '<p style="color:#666">Loading hospitals...</p>';
+                return;
+            }
+            grid.innerHTML = hospitals.map(h => {
+                const occupancy = ((h.beds_total - h.beds_free) / h.beds_total) * 100;
+                const fillClass = occupancy > 80 ? 'high' : occupancy > 50 ? 'medium' : '';
+                return `
+                    <div class="hospital-card">
+                        <h3><span class="icon">🏥</span><span>${h.name}</span></h3>
+                        <div class="address">📍 ${h.address || 'Cork, Ireland'}</div>
+                        <div class="capacity-bar"><div class="capacity-fill ${fillClass}" style="width: ${occupancy}%"></div></div>
+                        <div class="hospital-stats">
+                            <span>🛏️ ${h.beds_free}/${h.beds_total}</span>
+                            <span>⏱️ ~${h.wait_time}min</span>
+                        </div>
+                        <div class="hospital-specialties">${h.specialties.map(s => `<span class="specialty-tag">${s}</span>`).join('')}</div>
+                    </div>`;
+            }).join('');
+        }
+
+        function renderActivity(activity) {
+            const el = document.getElementById('activityLog');
+            if (!activity || activity.length === 0) {
+                el.innerHTML = `<div class="empty-state"><div class="icon">📋</div><p>No assignments yet</p></div>`;
+                return;
+            }
+            el.innerHTML = activity.slice(0, 15).map((a, i) => {
+                const urgencyClass = a.urgency <= 2 ? 'urgent' : a.urgency <= 3 ? 'standard' : 'low';
+                const urgencyText = a.urgency <= 2 ? 'Urgent' : a.urgency <= 3 ? 'Standard' : 'Low';
+                const dist = a.distance_km ? ` (${a.distance_km}km)` : '';
+                return `
+                    <div class="activity-item ${i === 0 ? 'new' : ''}">
+                        <span class="activity-time">${a.time}</span>
+                        <span class="activity-content">
+                            #${a.patient_id} → <span class="activity-hospital">${a.hospital}</span>${dist}
+                            <span style="color:#888;margin-left:4px">(${a.specialty})</span>
+                        </span>
+                        <span class="activity-urgency ${urgencyClass}">${urgencyText}</span>
+                    </div>`;
+            }).join('');
+        }
+
+        function renderPending(pending) {
+            const el = document.getElementById('pendingList');
+            if (!pending || pending.length === 0) {
+                el.innerHTML = `<div class="empty-state"><div class="icon">✅</div><p>No pending patients</p></div>`;
+                return;
+            }
+            el.innerHTML = pending.map(p => `
+                <div class="pending-item">
+                    <span class="pending-id">#${p.patient_id}</span>
+                    <span class="pending-symptoms">${p.symptoms}</span>
+                    <span class="pending-specialty">${p.specialty_required}</span>
+                </div>`).join('');
+        }
+
+        // Initialize
+        renderHospitals();
+        renderActivity([]);
+        renderPending([]);
+        setTimeout(testConnection, 500);
+    </script>
+</body>
+</html>

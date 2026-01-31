@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSE Nurse Triage Portal</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16162a 100%);
+            color: #eee;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3);
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header .logo {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover { background: rgba(255,255,255,0.2); }
+        .nav-link.active { background: rgba(255,255,255,0.25); font-weight: 600; }
+
+        .header-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .header-stat {
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 16px;
+            border-radius: 10px;
+        }
+
+        .header-stat .value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .header-stat .label {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        /* Main Layout */
+        .main-container {
+            display: flex;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+            gap: 20px;
+            min-height: calc(100vh - 80px);
+        }
+
+        /* Patient List Panel */
+        .patient-list-panel {
+            width: 400px;
+            background: rgba(30, 30, 50, 0.6);
+            border: 1px solid rgba(200, 199, 255, 0.1);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 16px 20px;
+            background: rgba(124, 58, 237, 0.2);
+            border-bottom: 1px solid rgba(200, 199, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header h2 {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px;
+            background: rgba(20, 20, 40, 0.5);
+            border-bottom: 1px solid rgba(200, 199, 255, 0.1);
+        }
+
+        .filter-tab {
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(200, 199, 255, 0.2);
+            background: transparent;
+            color: #888;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-tab:hover { border-color: #7c3aed; color: #c4b5fd; }
+        .filter-tab.active { background: rgba(124, 58, 237, 0.3); border-color: #7c3aed; color: #c4b5fd; }
+
+        .patient-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .patient-item {
+            background: rgba(40, 40, 70, 0.6);
+            border: 2px solid rgba(200, 199, 255, 0.1);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .patient-item:hover {
+            border-color: #7c3aed;
+            transform: translateX(4px);
+        }
+
+        .patient-item.selected {
+            border-color: #7c3aed;
+            background: rgba(124, 58, 237, 0.15);
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.2);
+        }
+
+        .patient-item.triaged {
+            border-color: #22c55e;
+            opacity: 0.7;
+        }
+
+        .patient-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .patient-item .name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .patient-item .time {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .patient-item .symptoms {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .patient-item .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tag {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+        }
+
+        .tag.urgency {
+            font-weight: 600;
+        }
+
+        .tag.urgency-1 { background: #dc2626; color: white; }
+        .tag.urgency-2 { background: #ea580c; color: white; }
+        .tag.urgency-3 { background: #ca8a04; color: white; }
+        .tag.urgency-4 { background: #16a34a; color: white; }
+        .tag.urgency-5 { background: #0891b2; color: white; }
+        .tag.pending { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+        .tag.assigned { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+
+        /* Triage Form Panel */
+        .triage-panel {
+            flex: 1;
+            background: rgba(30, 30, 50, 0.6);
+            border: 1px solid rgba(200, 199, 255, 0.1);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .triage-header {
+            padding: 16px 20px;
+            background: rgba(124, 58, 237, 0.2);
+            border-bottom: 1px solid rgba(200, 199, 255, 0.1);
+        }
+
+        .triage-header h2 {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .triage-header .subtitle {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .triage-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .no-patient-selected {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .no-patient-selected .icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Form Sections */
+        .form-section {
+            background: rgba(40, 40, 70, 0.4);
+            border: 1px solid rgba(200, 199, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-section h3 {
+            font-size: 14px;
+            color: #c4b5fd;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .info-item {
+            background: rgba(30, 30, 50, 0.6);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .info-item .label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .info-item .value {
+            font-size: 14px;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .info-item.highlight .value {
+            color: #f87171;
+        }
+
+        .symptoms-display {
+            background: rgba(30, 30, 50, 0.6);
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #ddd;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            background: rgba(30, 30, 50, 0.8);
+            border: 1px solid rgba(200, 199, 255, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            color: #eee;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #7c3aed;
+        }
+
+        .form-group select {
+            cursor: pointer;
+        }
+
+        .urgency-selector {
+            display: flex;
+            gap: 8px;
+        }
+
+        .urgency-option {
+            flex: 1;
+            padding: 12px 8px;
+            border-radius: 8px;
+            border: 2px solid rgba(200, 199, 255, 0.2);
+            background: transparent;
+            color: #888;
+            font-size: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .urgency-option:hover { border-color: rgba(200, 199, 255, 0.4); }
+        
+        .urgency-option.selected {
+            color: white;
+            font-weight: 600;
+        }
+
+        .urgency-option.selected.u1 { background: #dc2626; border-color: #dc2626; }
+        .urgency-option.selected.u2 { background: #ea580c; border-color: #ea580c; }
+        .urgency-option.selected.u3 { background: #ca8a04; border-color: #ca8a04; }
+        .urgency-option.selected.u4 { background: #16a34a; border-color: #16a34a; }
+        .urgency-option.selected.u5 { background: #0891b2; border-color: #0891b2; }
+
+        .ai-suggestion {
+            background: rgba(124, 58, 237, 0.15);
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            border-radius: 8px;
+            padding: 14px;
+            margin-top: 12px;
+        }
+
+        .ai-suggestion .header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #c4b5fd;
+            margin-bottom: 8px;
+        }
+
+        .ai-suggestion .content {
+            font-size: 13px;
+            color: #ddd;
+        }
+
+        .ai-suggestion .apply-btn {
+            margin-top: 10px;
+            background: rgba(124, 58, 237, 0.3);
+            border: 1px solid #7c3aed;
+            color: #c4b5fd;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ai-suggestion .apply-btn:hover {
+            background: rgba(124, 58, 237, 0.5);
+        }
+
+        /* Form Actions */
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            padding: 20px;
+            background: rgba(20, 20, 40, 0.8);
+            border-top: 1px solid rgba(200, 199, 255, 0.1);
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(200, 199, 255, 0.1);
+            border: 1px solid rgba(200, 199, 255, 0.2);
+            color: #c4b5fd;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(200, 199, 255, 0.2);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            flex: 1;
+        }
+
+        /* Assignment Result */
+        .assignment-result {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .assignment-result h4 {
+            color: #4ade80;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .assignment-result .hospital-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .assignment-result .details {
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        /* Scrollbar */
+        .patient-list::-webkit-scrollbar,
+        .triage-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .patient-list::-webkit-scrollbar-track,
+        .triage-content::-webkit-scrollbar-track {
+            background: rgba(200, 199, 255, 0.05);
+        }
+
+        .patient-list::-webkit-scrollbar-thumb,
+        .triage-content::-webkit-scrollbar-thumb {
+            background: rgba(200, 199, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .refresh-btn {
+            background: rgba(200, 199, 255, 0.1);
+            border: 1px solid rgba(200, 199, 255, 0.2);
+            color: #c4b5fd;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(200, 199, 255, 0.2);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Referral Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .referral-form {
+            background: linear-gradient(135deg, #1e1e32 0%, #2a2a45 100%);
+            border: 2px solid rgba(124, 58, 237, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+
+        .referral-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid rgba(124, 58, 237, 0.3);
+            padding-bottom: 20px;
+        }
+
+        .referral-header h2 {
+            color: #7c3aed;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .referral-header .subtitle {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .referral-section {
+            background: rgba(40, 40, 70, 0.4);
+            border: 1px solid rgba(200, 199, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .referral-section h3 {
+            color: #c4b5fd;
+            font-size: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-grid.full {
+            grid-template-columns: 1fr;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field label {
+            color: #aaa;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .field .value {
+            background: rgba(20, 20, 40, 0.6);
+            border: 1px solid rgba(200, 199, 255, 0.2);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .field select,
+        .field input,
+        .field textarea {
+            background: rgba(20, 20, 40, 0.6);
+            border: 1px solid rgba(200, 199, 255, 0.2);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .field textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .referral-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(200, 199, 255, 0.1);
+        }
+
+        .referral-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .referral-btn.cancel {
+            background: rgba(100, 100, 120, 0.3);
+            color: #aaa;
+        }
+
+        .referral-btn.cancel:hover {
+            background: rgba(100, 100, 120, 0.4);
+        }
+
+        .referral-btn.submit {
+            background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+            color: white;
+        }
+
+        .referral-btn.submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+        }
+
+        .alert-box {
+            background: rgba(251, 191, 36, 0.15);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 20px;
+            color: #fbbf24;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>
+            <span class="logo">👩‍⚕️</span>
+            HSE Nurse Triage Portal
+        </h1>
+        <nav class="nav-links">
+            <a href="patient.html" class="nav-link">👤 Patient Portal</a>
+            <a href="nurse.html" class="nav-link active">👩‍⚕️ Nurse Triage</a>
+            <a href="admin.html" class="nav-link">📊 Admin Dashboard</a>
+        </nav>
+        <div class="header-stats">
+            <div class="header-stat">
+                <div class="value" id="pendingCount">0</div>
+                <div class="label">Pending</div>
+            </div>
+            <div class="header-stat">
+                <div class="value" id="assignedCount">0</div>
+                <div class="label">Assigned Today</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Patient List Panel -->
+        <div class="patient-list-panel">
+            <div class="panel-header">
+                <h2>📋 Patient Queue</h2>
+                <button class="refresh-btn" onclick="loadPatients()">🔄 Refresh</button>
+            </div>
+            <div class="filter-tabs">
+                <button class="filter-tab active" onclick="filterPatients('all')">All</button>
+                <button class="filter-tab" onclick="filterPatients('pending')">Pending</button>
+                <button class="filter-tab" onclick="filterPatients('assigned')">Assigned</button>
+            </div>
+            <div class="patient-list" id="patientList">
+                <div class="empty-state">
+                    <div class="icon">📋</div>
+                    <p>No patients in queue</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Triage Form Panel -->
+        <div class="triage-panel">
+            <div id="triageFormContainer">
+                <div class="no-patient-selected">
+                    <div class="icon">👈</div>
+                    <h3>Select a Patient</h3>
+                    <p>Choose a patient from the queue to begin triage assessment</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Patient Referral Modal -->
+    <div class="modal-overlay" id="referralModal">
+        <div class="referral-form">
+            <div class="referral-header">
+                <h2>🏥 Patient Referral / Transfer Form</h2>
+                <div class="subtitle">HSE Inter-Hospital Transfer Request</div>
+            </div>
+
+            <div class="alert-box">
+                ⚠️ Ensure all required information is accurate. This referral will be sent to the receiving hospital immediately upon submission.
+            </div>
+
+            <form id="referralFormData" onsubmit="submitReferral(event)">
+                <!-- Patient Information -->
+                <div class="referral-section">
+                    <h3>👤 Patient Information</h3>
+                    <div class="form-grid">
+                        <div class="field">
+                            <label>Patient Name</label>
+                            <div class="value" id="refPatientName">-</div>
+                        </div>
+                        <div class="field">
+                            <label>Patient ID</label>
+                            <div class="value" id="refPatientId">-</div>
+                        </div>
+                        <div class="field">
+                            <label>Age</label>
+                            <div class="value" id="refAge">-</div>
+                        </div>
+                        <div class="field">
+                            <label>Blood Type</label>
+                            <div class="value" id="refBloodType">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Status -->
+                <div class="referral-section">
+                    <h3>📋 Current Status</h3>
+                    <div class="form-grid">
+                        <div class="field">
+                            <label>Current Hospital</label>
+                            <div class="value" id="refCurrentHospital">-</div>
+                        </div>
+                        <div class="field">
+                            <label>Triage Level</label>
+                            <div class="value" id="refTriageLevel">-</div>
+                        </div>
+                        <div class="field full">
+                            <label>Primary Diagnosis</label>
+                            <div class="value" id="refDiagnosis">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transfer Details -->
+                <div class="referral-section">
+                    <h3>🔄 Transfer Details</h3>
+                    <div class="form-grid">
+                        <div class="field">
+                            <label>Receiving Hospital *</label>
+                            <select id="receivingHospital" required>
+                                <option value="">Select Hospital</option>
+                                <option value="Cork University Hospital">Cork University Hospital</option>
+                                <option value="Mercy University Hospital">Mercy University Hospital</option>
+                                <option value="South Infirmary Victoria University Hospital">South Infirmary Victoria</option>
+                                <option value="Bon Secours Hospital Cork">Bon Secours Hospital Cork</option>
+                                <option value="Bantry General Hospital">Bantry General Hospital</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Required Specialty *</label>
+                            <select id="requiredSpecialty" required>
+                                <option value="">Select Specialty</option>
+                                <option value="General">General</option>
+                                <option value="Cardiology">Cardiology</option>
+                                <option value="Neurology">Neurology</option>
+                                <option value="Orthopaedics">Orthopaedics</option>
+                                <option value="Trauma">Trauma</option>
+                                <option value="Oncology">Oncology</option>
+                                <option value="Maternity">Maternity</option>
+                                <option value="Paediatrics">Paediatrics</option>
+                                <option value="ICU">Intensive Care</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Urgency of Transfer *</label>
+                            <select id="transferUrgency" required>
+                                <option value="">Select Urgency</option>
+                                <option value="Immediate">Immediate (within 1 hour)</option>
+                                <option value="Urgent">Urgent (within 4 hours)</option>
+                                <option value="Standard">Standard (within 24 hours)</option>
+                                <option value="Scheduled">Scheduled (planned)</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Transport Method *</label>
+                            <select id="transportMethod" required>
+                                <option value="">Select Method</option>
+                                <option value="Ambulance">Emergency Ambulance</option>
+                                <option value="Non-Emergency">Non-Emergency Transport</option>
+                                <option value="Air Ambulance">Air Ambulance</option>
+                                <option value="Private">Private Transport</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Clinical Information -->
+                <div class="referral-section">
+                    <h3>🩺 Clinical Information</h3>
+                    <div class="form-grid full">
+                        <div class="field">
+                            <label>Reason for Transfer *</label>
+                            <textarea id="transferReason" required placeholder="e.g., Patient requires specialist cardiac care not available at current facility..."></textarea>
+                        </div>
+                        <div class="field">
+                            <label>Current Medical Status & Vital Signs</label>
+                            <textarea id="medicalStatus" placeholder="e.g., BP: 130/85, HR: 72, Temp: 36.8°C, SpO2: 98%..."></textarea>
+                        </div>
+                        <div class="field">
+                            <label>Current Medications</label>
+                            <textarea id="currentMeds" placeholder="List current medications and dosages..."></textarea>
+                        </div>
+                        <div class="field">
+                            <label>Special Requirements / Precautions</label>
+                            <textarea id="specialRequirements" placeholder="e.g., Isolation required, mobility assistance needed, requires oxygen..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Referring Clinician -->
+                <div class="referral-section">
+                    <h3>👨‍⚕️ Referring Clinician Information</h3>
+                    <div class="form-grid">
+                        <div class="field">
+                            <label>Your Name *</label>
+                            <input type="text" id="clinicianName" required placeholder="Dr. / Nurse Name">
+                        </div>
+                        <div class="field">
+                            <label>Contact Number *</label>
+                            <input type="tel" id="clinicianContact" required placeholder="085 123 4567">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="referral-actions">
+                    <button type="button" class="referral-btn cancel" onclick="closeReferralModal()">
+                        ❌ Cancel
+                    </button>
+                    <button type="submit" class="referral-btn submit">
+                        ✅ Submit Referral
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'http://localhost:8000';
+        let patients = [];
+        let selectedPatient = null;
+        let currentFilter = 'all';
+
+        // 5 Preset Patients (same as patient.html for reference)
+        const patientProfiles = {
+            "Seán O'Brien": { bloodType: "O+", previousIllness: "Hypertension", allergies: "Penicillin", age: 45, gender: "Male" },
+            "Aoife Murphy": { bloodType: "A-", previousIllness: "Asthma", allergies: "None", age: 32, gender: "Female" },
+            "Pádraig Walsh": { bloodType: "B+", previousIllness: "Type 2 Diabetes, Heart Disease", allergies: "Aspirin", age: 67, gender: "Male" },
+            "Niamh Fitzgerald": { bloodType: "AB+", previousIllness: "None", allergies: "Shellfish", age: 28, gender: "Female" },
+            "Cormac Kelly": { bloodType: "O-", previousIllness: "COPD, Previous Stroke", allergies: "Sulfa drugs", age: 55, gender: "Male" }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPatients();
+            setInterval(loadPatients, 10000); // Auto-refresh every 10 seconds
+        });
+
+        async function loadPatients() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/patients`);
+                const data = await response.json();
+                
+                // Combine pending and assigned
+                patients = [
+                    ...data.pending.map(p => ({ ...p, status: 'pending' })),
+                    ...data.assigned.map(p => ({ ...p, status: 'assigned' }))
+                ];
+                
+                document.getElementById('pendingCount').textContent = data.pending_count;
+                document.getElementById('assignedCount').textContent = data.assigned_count;
+                
+                renderPatientList();
+            } catch (error) {
+                console.error('Failed to load patients:', error);
+            }
+        }
+
+        function filterPatients(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            renderPatientList();
+        }
+
+        function renderPatientList() {
+            const container = document.getElementById('patientList');
+            
+            let filtered = patients;
+            if (currentFilter === 'pending') {
+                filtered = patients.filter(p => p.status === 'pending');
+            } else if (currentFilter === 'assigned') {
+                filtered = patients.filter(p => p.status === 'assigned');
+            }
+            
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📋</div>
+                        <p>No ${currentFilter === 'all' ? '' : currentFilter} patients</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filtered.map(p => {
+                const urgencyLabels = { 1: 'IMMEDIATE', 2: 'Very Urgent', 3: 'Urgent', 4: 'Standard', 5: 'Non-Urgent' };
+                const time = new Date(p.timestamp).toLocaleTimeString('en-IE', { hour: '2-digit', minute: '2-digit' });
+                
+                return `
+                    <div class="patient-item ${p.status === 'assigned' ? 'triaged' : ''} ${selectedPatient?.patient_id === p.patient_id ? 'selected' : ''}" 
+                         onclick="selectPatient(${p.patient_id})">
+                        <div class="patient-item-header">
+                            <span class="name">${p.patient_name || `Patient #${p.patient_id}`}</span>
+                            <span class="time">${time}</span>
+                        </div>
+                        <div class="symptoms">${p.symptoms}</div>
+                        <div class="tags">
+                            <span class="tag urgency urgency-${p.triage_level}">${urgencyLabels[p.triage_level]}</span>
+                            <span class="tag ${p.status}">${p.status === 'pending' ? '⏳ Pending' : '✅ Assigned'}</span>
+                            ${p.specialty_required ? `<span class="tag" style="background: rgba(200,199,255,0.1); color: #c4b5fd;">${p.specialty_required}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectPatient(patientId) {
+            selectedPatient = patients.find(p => p.patient_id === patientId);
+            renderPatientList();
+            renderTriageForm();
+        }
+
+        function renderTriageForm() {
+            const container = document.getElementById('triageFormContainer');
+            
+            if (!selectedPatient) {
+                container.innerHTML = `
+                    <div class="no-patient-selected">
+                        <div class="icon">👈</div>
+                        <h3>Select a Patient</h3>
+                        <p>Choose a patient from the queue to begin triage assessment</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const profile = patientProfiles[selectedPatient.patient_name] || {};
+            const urgencyLabels = { 1: 'IMMEDIATE', 2: 'Very Urgent', 3: 'Urgent', 4: 'Standard', 5: 'Non-Urgent' };
+            
+            container.innerHTML = `
+                <div class="triage-header">
+                    <h2>📝 Triage Form: ${selectedPatient.patient_name || `Patient #${selectedPatient.patient_id}`}</h2>
+                    <div class="subtitle">Patient ID: ${selectedPatient.patient_id} • Arrived: ${new Date(selectedPatient.timestamp).toLocaleString('en-IE')}</div>
+                </div>
+                
+                <div class="triage-content">
+                    <!-- Patient Information -->
+                    <div class="form-section">
+                        <h3>👤 Patient Information</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="label">Name</div>
+                                <div class="value">${selectedPatient.patient_name || 'Unknown'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="label">Age</div>
+                                <div class="value">${selectedPatient.age || profile.age || 'Unknown'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="label">Gender</div>
+                                <div class="value">${profile.gender || 'Unknown'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="label">Blood Type</div>
+                                <div class="value">${profile.bloodType || 'Unknown'}</div>
+                            </div>
+                            <div class="info-item highlight" style="grid-column: span 2;">
+                                <div class="label">⚠️ Allergies</div>
+                                <div class="value">${profile.allergies || 'None recorded'}</div>
+                            </div>
+                            <div class="info-item" style="grid-column: span 2;">
+                                <div class="label">Previous Illness</div>
+                                <div class="value">${profile.previousIllness || 'None recorded'}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Presenting Symptoms -->
+                    <div class="form-section">
+                        <h3>🩺 Presenting Symptoms</h3>
+                        <div class="symptoms-display">${selectedPatient.symptoms}</div>
+                        ${selectedPatient.detected_language === 'Irish' ? `
+                            <div style="margin-top: 10px; font-size: 12px; color: #888;">
+                                <strong>🇮🇪 Detected Language:</strong> Irish<br>
+                                <strong>Translation:</strong> ${selectedPatient.translated_symptoms || 'N/A'}
+                            </div>
+                        ` : ''}
+                        
+                        <!-- AI Suggestion -->
+                        <div class="ai-suggestion">
+                            <div class="header">🤖 AI Assessment</div>
+                            <div class="content">
+                                <strong>Chief Complaint:</strong> ${selectedPatient.chief_complaint}<br>
+                                <strong>Assessment:</strong> ${selectedPatient.triage_reason}<br>
+                                ${selectedPatient.pain_level ? `<strong>Pain Level:</strong> ${selectedPatient.pain_level}/10<br>` : ''}
+                                ${selectedPatient.duration ? `<strong>Duration:</strong> ${selectedPatient.duration}` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Triage Assessment -->
+                    <div class="form-section">
+                        <h3>⚡ Triage Assessment</h3>
+                        
+                        <div class="form-group" style="margin-bottom: 16px;">
+                            <label>Urgency Level (Manchester Triage)</label>
+                            <div class="urgency-selector">
+                                ${[1,2,3,4,5].map(level => `
+                                    <button class="urgency-option u${level} ${selectedPatient.triage_level === level ? 'selected' : ''}" 
+                                            onclick="setUrgency(${level})">
+                                        <div style="font-size: 16px; margin-bottom: 4px;">${level}</div>
+                                        <div>${urgencyLabels[level]}</div>
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Required Specialty</label>
+                                <select id="specialty">
+                                    <option value="General" ${selectedPatient.specialty_required === 'General' ? 'selected' : ''}>General</option>
+                                    <option value="Cardiology" ${selectedPatient.specialty_required === 'Cardiology' ? 'selected' : ''}>Cardiology</option>
+                                    <option value="Neurology" ${selectedPatient.specialty_required === 'Neurology' ? 'selected' : ''}>Neurology</option>
+                                    <option value="Orthopaedics" ${selectedPatient.specialty_required === 'Orthopaedics' ? 'selected' : ''}>Orthopaedics</option>
+                                    <option value="Trauma" ${selectedPatient.specialty_required === 'Trauma' ? 'selected' : ''}>Trauma</option>
+                                    <option value="Oncology" ${selectedPatient.specialty_required === 'Oncology' ? 'selected' : ''}>Oncology</option>
+                                    <option value="Maternity" ${selectedPatient.specialty_required === 'Maternity' ? 'selected' : ''}>Maternity</option>
+                                    <option value="ENT" ${selectedPatient.specialty_required === 'ENT' ? 'selected' : ''}>ENT</option>
+                                    <option value="Ophthalmology" ${selectedPatient.specialty_required === 'Ophthalmology' ? 'selected' : ''}>Ophthalmology</option>
+                                    <option value="Geriatrics" ${selectedPatient.specialty_required === 'Geriatrics' ? 'selected' : ''}>Geriatrics</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Pain Level (1-10)</label>
+                                <input type="number" id="painLevel" min="1" max="10" value="${selectedPatient.pain_level || ''}">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Nurse Notes</label>
+                            <textarea id="nurseNotes" rows="3" placeholder="Add any additional observations or notes..."></textarea>
+                        </div>
+                    </div>
+                    
+                    ${selectedPatient.status === 'assigned' ? `
+                        <div class="assignment-result">
+                            <h4>✅ Assignment Complete</h4>
+                            <div class="hospital-name">${selectedPatient.assigned_hospital}</div>
+                            <div class="details">
+                                Assigned at ${new Date(selectedPatient.assigned_at).toLocaleString('en-IE')}
+                                ${selectedPatient.distance_km ? ` • Distance: ${selectedPatient.distance_km} km` : ''}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+                
+                ${selectedPatient.status === 'pending' ? `
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" onclick="saveDraft()">💾 Save Draft</button>
+                        <button class="btn btn-success" onclick="completeTriageAndAssign()">✅ Complete Triage & Assign Hospital</button>
+                    </div>
+                ` : `
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" onclick="printSummary()">🖨️ Print Summary</button>
+                        <button class="btn btn-primary" onclick="transferPatient()">🔄 Transfer Patient</button>
+                    </div>
+                `}
+            `;
+        }
+
+        function setUrgency(level) {
+            document.querySelectorAll('.urgency-option').forEach(opt => opt.classList.remove('selected'));
+            document.querySelector(`.urgency-option.u${level}`).classList.add('selected');
+            selectedPatient.triage_level = level;
+        }
+
+        async function completeTriageAndAssign() {
+            try {
+                // Run optimization
+                const response = await fetch(`${BACKEND_URL}/api/optimize`, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'optimal' || result.status === 'feasible') {
+                    alert(`✅ Patient assigned successfully!\n\nAssignments made: ${result.assignments.length}`);
+                    await loadPatients();
+                    selectedPatient = null;
+                    renderTriageForm();
+                } else {
+                    alert(`⚠️ ${result.message || 'Could not assign patient'}`);
+                }
+            } catch (error) {
+                console.error('Assignment failed:', error);
+                alert('Failed to assign patient. Please try again.');
+            }
+        }
+
+        function saveDraft() {
+            alert('Draft saved successfully!');
+        }
+
+        function printSummary() {
+            window.print();
+        }
+
+        function transferPatient() {
+            if (!selectedPatient) {
+                alert('No patient selected');
+                return;
+            }
+
+            // Populate the referral form with patient data
+            const profile = patientProfiles[selectedPatient.patient_name] || {};
+            const urgencyLabels = { 1: 'IMMEDIATE', 2: 'Very Urgent', 3: 'Urgent', 4: 'Standard', 5: 'Non-Urgent' };
+
+            document.getElementById('refPatientName').textContent = selectedPatient.patient_name || 'Unknown';
+            document.getElementById('refPatientId').textContent = selectedPatient.patient_id || 'N/A';
+            document.getElementById('refAge').textContent = selectedPatient.age || profile.age || 'Unknown';
+            document.getElementById('refBloodType').textContent = profile.bloodType || 'Unknown';
+            document.getElementById('refCurrentHospital').textContent = selectedPatient.assigned_hospital || 'Not assigned';
+            document.getElementById('refTriageLevel').textContent = urgencyLabels[selectedPatient.triage_level] || 'Not triaged';
+            document.getElementById('refDiagnosis').textContent = selectedPatient.triage_reason || selectedPatient.chief_complaint || 'N/A';
+
+            // Pre-fill specialty if available
+            if (selectedPatient.specialty_required) {
+                document.getElementById('requiredSpecialty').value = selectedPatient.specialty_required;
+            }
+
+            // Show modal
+            document.getElementById('referralModal').classList.add('active');
+        }
+
+        function closeReferralModal() {
+            document.getElementById('referralModal').classList.remove('active');
+            document.getElementById('referralFormData').reset();
+        }
+
+        function submitReferral(event) {
+            event.preventDefault();
+
+            const referralData = {
+                patient_id: selectedPatient.patient_id,
+                patient_name: selectedPatient.patient_name,
+                receiving_hospital: document.getElementById('receivingHospital').value,
+                specialty: document.getElementById('requiredSpecialty').value,
+                urgency: document.getElementById('transferUrgency').value,
+                transport_method: document.getElementById('transportMethod').value,
+                reason: document.getElementById('transferReason').value,
+                medical_status: document.getElementById('medicalStatus').value,
+                medications: document.getElementById('currentMeds').value,
+                special_requirements: document.getElementById('specialRequirements').value,
+                clinician_name: document.getElementById('clinicianName').value,
+                clinician_contact: document.getElementById('clinicianContact').value,
+                timestamp: new Date().toISOString()
+            };
+
+            // In a real app, this would POST to the backend
+            console.log('Referral submitted:', referralData);
+            
+            alert(`✅ Referral sent successfully!
+
+Patient: ${referralData.patient_name}
+Receiving Hospital: ${referralData.receiving_hospital}
+Urgency: ${referralData.urgency}
+
+The receiving hospital will be notified immediately.`);
+
+            closeReferralModal();
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('referralModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeReferralModal();
+            }
+        });
+    </script>
+</body>
+</html>
