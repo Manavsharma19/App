@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSE Patient Intake</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16162a 100%);
+            color: #eee;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #5350c4 0%, #3d39ac 100%);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(83, 80, 196, 0.3);
+        }
+
+        .header h1 { font-size: 22px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .header .logo { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+
+        .header .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 14px;
+            border-radius: 20px;
+        }
+
+        .header .nav-link {
+            color: white;
+            text-decoration: none;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .header .nav-link:hover { background: rgba(255,255,255,0.2); }
+
+        .status-dot {
+            width: 10px; height: 10px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+        }
+
+        .status-dot.disconnected { background: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.1); } }
+
+        .config-bar {
+            background: rgba(61, 57, 172, 0.3);
+            padding: 12px 24px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            border-bottom: 1px solid rgba(200, 199, 255, 0.1);
+            flex-wrap: wrap;
+        }
+
+        .config-bar label { color: #c8c7ff; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+
+        .config-bar input {
+            background: rgba(30, 30, 50, 0.8);
+            border: 1px solid rgba(200, 199, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: #eee;
+            font-size: 13px;
+            width: 300px;
+        }
+
+        .config-bar input:focus { outline: none; border-color: #5350c4; }
+
+        .config-btn {
+            background: rgba(200, 199, 255, 0.1);
+            border: 1px solid rgba(200, 199, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 6px;
+            color: #c8c7ff;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .config-btn:hover { background: rgba(200, 199, 255, 0.2); }
+
+        /* Chat Container */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .chat-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(200, 199, 255, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .chat-header h2 { font-size: 24px; color: #c8c7ff; margin-bottom: 8px; }
+        .chat-header p { color: #888; font-size: 14px; }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            background: rgba(22, 22, 46, 0.5);
+            border-radius: 16px;
+            margin-bottom: 20px;
+            min-height: 400px;
+        }
+
+        .chat-messages::-webkit-scrollbar { width: 6px; }
+        .chat-messages::-webkit-scrollbar-track { background: transparent; }
+        .chat-messages::-webkit-scrollbar-thumb { background: rgba(200, 199, 255, 0.2); border-radius: 3px; }
+
+        .message {
+            max-width: 85%;
+            padding: 14px 18px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.6;
+            animation: messageIn 0.3s ease;
+        }
+
+        @keyframes messageIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .message.bot { align-self: flex-start; background: rgba(200, 199, 255, 0.1); border: 1px solid rgba(200, 199, 255, 0.15); }
+        .message.user { align-self: flex-end; background: linear-gradient(135deg, #5350c4, #3d39ac); box-shadow: 0 4px 15px rgba(83, 80, 196, 0.3); }
+        .message.error { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        .triage-result {
+            background: rgba(30, 30, 50, 0.8);
+            border: 1px solid rgba(200, 199, 255, 0.15);
+            border-radius: 18px;
+            padding: 20px;
+            align-self: flex-start;
+            max-width: 95%;
+            animation: messageIn 0.3s ease;
+        }
+
+        .triage-result h4 { font-size: 12px; color: #c8c7ff; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .triage-level {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 14px;
+        }
+
+        .triage-level.urgent-1 { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+        .triage-level.urgent-2 { background: linear-gradient(135deg, #ea580c, #c2410c); }
+        .triage-level.urgent-3 { background: linear-gradient(135deg, #ca8a04, #a16207); }
+        .triage-level.urgent-4 { background: linear-gradient(135deg, #16a34a, #15803d); }
+        .triage-level.urgent-5 { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+
+        .triage-details { font-size: 14px; color: #ccc; }
+        .triage-details p { margin: 8px 0; display: flex; gap: 10px; }
+        .triage-details strong { color: #c8c7ff; min-width: 90px; }
+
+        .form-preview {
+            background: rgba(20, 20, 40, 0.6);
+            border: 1px solid rgba(200, 199, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .form-preview h5 { color: #c8c7ff; margin-bottom: 12px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .form-preview .field {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(200, 199, 255, 0.08);
+            font-size: 14px;
+        }
+
+        .form-preview .field:last-child { border-bottom: none; }
+        .form-preview .label { color: #888; }
+        .form-preview .value { color: #eee; text-align: right; }
+
+        .assignment-result {
+            background: linear-gradient(135deg, #5350c4 0%, #3d39ac 100%);
+            border-radius: 18px;
+            padding: 20px;
+            align-self: flex-start;
+            max-width: 95%;
+            animation: messageIn 0.3s ease;
+            box-shadow: 0 4px 20px rgba(83, 80, 196, 0.4);
+        }
+
+        .assignment-result h4 { font-size: 16px; margin-bottom: 10px; }
+        .assignment-result p { font-size: 14px; opacity: 0.9; line-height: 1.5; }
+
+        .sample-prompts {
+            padding: 16px 20px;
+            background: rgba(20, 20, 40, 0.3);
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .sample-prompts p { font-size: 12px; color: #666; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .sample-prompts .prompts { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .sample-prompt {
+            background: rgba(200, 199, 255, 0.1);
+            border: 1px solid rgba(200, 199, 255, 0.15);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #c8c7ff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sample-prompt:hover { background: rgba(200, 199, 255, 0.2); border-color: #5350c4; }
+
+        .chat-input {
+            display: flex;
+            gap: 12px;
+            background: rgba(30, 30, 50, 0.5);
+            padding: 16px;
+            border-radius: 16px;
+        }
+
+        .chat-input textarea {
+            flex: 1;
+            background: rgba(30, 30, 50, 0.8);
+            border: 1px solid rgba(200, 199, 255, 0.2);
+            border-radius: 12px;
+            padding: 14px 18px;
+            color: #eee;
+            font-size: 15px;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+        }
+
+        .chat-input textarea:focus { border-color: #5350c4; }
+        .chat-input textarea::placeholder { color: #666; }
+
+        .chat-input button {
+            background: linear-gradient(135deg, #5350c4, #3d39ac);
+            border: none;
+            border-radius: 12px;
+            padding: 14px 28px;
+            color: white;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(83, 80, 196, 0.3);
+        }
+
+        .chat-input button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(83, 80, 196, 0.4); }
+        .chat-input button:disabled { background: #333; box-shadow: none; cursor: not-allowed; transform: none; }
+
+        .typing {
+            display: flex;
+            gap: 5px;
+            padding: 14px 18px;
+            background: rgba(200, 199, 255, 0.1);
+            border: 1px solid rgba(200, 199, 255, 0.15);
+            border-radius: 18px;
+            align-self: flex-start;
+        }
+
+        .typing span { width: 8px; height: 8px; background: #c8c7ff; border-radius: 50%; animation: typingBounce 1.4s infinite ease-in-out; }
+        .typing span:nth-child(2) { animation-delay: 0.2s; }
+        .typing span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingBounce { 0%, 80%, 100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-6px); opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><span class="logo">💬</span> HSE Patient Intake</h1>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <a href="dashboard.html" class="nav-link">📊 Admin Dashboard</a>
+            <div class="status">
+                <div class="status-dot" id="connectionStatus"></div>
+                <span id="connectionText">Connecting...</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="config-bar">
+        <label>Backend URL:
+            <input type="text" id="backendUrl" value="http://localhost:8000" placeholder="http://localhost:8000">
+        </label>
+        <button class="config-btn" onclick="testConnection()">Test Connection</button>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>🏥 Welcome to HSE Intake</h2>
+            <p>Describe your symptoms in English or Irish. Our AI will assess and assign you to the right hospital.</p>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">
+                Fáilte! Welcome to HSE Intake. Please describe your symptoms in <strong>English</strong> or <strong>Irish</strong>.
+            </div>
+        </div>
+
+        <div class="sample-prompts">
+            <p>Try these examples:</p>
+            <div class="prompts">
+                <span class="sample-prompt" onclick="usePrompt('Tá pian i mo chliabhrach agus tá mé ag mothú lag')">🇮🇪 Chest pain (Irish)</span>
+                <span class="sample-prompt" onclick="usePrompt('I have a severe headache and blurred vision')">🇬🇧 Headache</span>
+                <span class="sample-prompt" onclick="usePrompt('I fell and I think my wrist is broken')">🦴 Fracture</span>
+            </div>
+        </div>
+
+        <div class="chat-input">
+            <textarea id="userInput" placeholder="Describe your symptoms... (English or Irish)" rows="2"></textarea>
+            <button id="sendBtn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        let BACKEND_URL = 'http://localhost:8000';
+        let isConnected = false;
+
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const backendUrlInput = document.getElementById('backendUrl');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const connectionText = document.getElementById('connectionText');
+
+        // ============================================
+        // BACKEND API CALLS
+        // ============================================
+
+        async function testConnection() {
+            BACKEND_URL = backendUrlInput.value.trim();
+            try {
+                const response = await fetch(`${BACKEND_URL}/`);
+                if (response.ok) {
+                    const data = await response.json();
+                    isConnected = true;
+                    connectionStatus.classList.remove('disconnected');
+                    connectionText.textContent = `Connected`;
+                    addMessage(`✅ Connected to backend. LLM: ${data.llm_provider}`, 'bot');
+                }
+            } catch (error) {
+                isConnected = false;
+                connectionStatus.classList.add('disconnected');
+                connectionText.textContent = 'Disconnected';
+                addMessage(`❌ Cannot connect to backend at ${BACKEND_URL}`, 'bot error');
+            }
+        }
+
+        async function triageAndAssign(symptoms) {
+            const response = await fetch(`${BACKEND_URL}/api/triage-and-assign`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ symptoms: symptoms })
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'API Error');
+            }
+            
+            return await response.json();
+        }
+
+        // ============================================
+        // CHAT FUNCTIONS
+        // ============================================
+
+        function addMessage(content, type = 'bot') {
+            const div = document.createElement('div');
+            div.className = `message ${type}`;
+            div.innerHTML = content;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addTriageResult(triage) {
+            const labels = { 1: 'Immediate', 2: 'Very Urgent', 3: 'Urgent', 4: 'Standard', 5: 'Non-Urgent' };
+            const icons = { 1: '🔴', 2: '🟠', 3: '🟡', 4: '🟢', 5: '🔵' };
+            
+            const html = `
+                <div class="triage-result">
+                    <h4>📋 Triage Assessment</h4>
+                    <span class="triage-level urgent-${triage.triage_level}">${icons[triage.triage_level]} Level ${triage.triage_level}: ${labels[triage.triage_level]}</span>
+                    <div class="triage-details">
+                        <p><strong>Language:</strong><span>${triage.detected_language}</span></p>
+                        ${triage.translated_symptoms ? `<p><strong>Translated:</strong><span>${triage.translated_symptoms}</span></p>` : ''}
+                        <p><strong>Specialty:</strong><span>${triage.specialty_required}</span></p>
+                        <p><strong>Reason:</strong><span>${triage.triage_reason}</span></p>
+                    </div>
+                    <div class="form-preview">
+                        <h5>📝 Auto-Filled HSE Form</h5>
+                        <div class="field"><span class="label">Patient ID</span><span class="value">#${triage.patient_id}</span></div>
+                        <div class="field"><span class="label">Chief Complaint</span><span class="value">${triage.chief_complaint}</span></div>
+                        <div class="field"><span class="label">Pain Level</span><span class="value">${triage.pain_level ? triage.pain_level + '/10' : 'N/A'}</span></div>
+                        <div class="field"><span class="label">Assigned Dept</span><span class="value">${triage.specialty_required}</span></div>
+                    </div>
+                </div>`;
+            chatMessages.innerHTML += html;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addAssignmentResult(assignment) {
+            const html = `
+                <div class="assignment-result">
+                    <h4>✅ You Have Been Assigned</h4>
+                    <p><strong>${assignment.hospital_name}</strong></p>
+                    <p style="margin-top:8px;opacity:0.85">${assignment.reason}</p>
+                </div>`;
+            chatMessages.innerHTML += html;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTyping() {
+            const div = document.createElement('div');
+            div.className = 'typing';
+            div.id = 'typing';
+            div.innerHTML = '<span></span><span></span><span></span>';
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTyping() { document.getElementById('typing')?.remove(); }
+        function usePrompt(text) { userInput.value = text; userInput.focus(); }
+
+        // ============================================
+        // MAIN SEND FUNCTION
+        // ============================================
+
+        async function sendMessage() {
+            const symptoms = userInput.value.trim();
+            if (!symptoms) return;
+
+            if (!isConnected) {
+                addMessage('❌ Not connected to backend. Click "Test Connection" first.', 'bot error');
+                return;
+            }
+
+            addMessage(symptoms, 'user');
+            userInput.value = '';
+            sendBtn.disabled = true;
+            showTyping();
+
+            try {
+                const result = await triageAndAssign(symptoms);
+                hideTyping();
+
+                addTriageResult(result.triage);
+                await new Promise(r => setTimeout(r, 600));
+
+                if (result.assignment) {
+                    addAssignmentResult(result.assignment);
+                } else {
+                    addMessage('⚠️ Could not assign. Hospitals may be full.', 'bot error');
+                }
+
+            } catch (error) {
+                hideTyping();
+                addMessage(`⚠️ Error: ${error.message}`, 'bot error');
+            }
+
+            sendBtn.disabled = false;
+            userInput.focus();
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+
+        userInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Auto-connect on load
+        setTimeout(testConnection, 500);
+    </script>
+</body>
+</html>

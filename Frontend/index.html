@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSE Multi-Agent Manager</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16162a 100%);
+            color: #eee;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #5350c4 0%, #3d39ac 100%);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(83, 80, 196, 0.3);
+        }
+
+        .header h1 { font-size: 22px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .header .logo { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+
+        .header .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 14px;
+            border-radius: 20px;
+        }
+
+        .status-dot {
+            width: 10px; height: 10px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+        }
+
+        .status-dot.disconnected { background: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.1); } }
+
+        .config-bar {
+            background: rgba(61, 57, 172, 0.3);
+            padding: 12px 24px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            border-bottom: 1px solid rgba(200, 199, 255, 0.1);
+            flex-wrap: wrap;
+        }
+
+        .config-bar label { color: #c8c7ff; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+
+        .config-bar input, .config-bar select {
+            background: rgba(30, 30, 50, 0.8);
+            border: 1px solid rgba(200, 199, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: #eee;
+            font-size: 13px;
+        }
+
+        .config-bar input:focus, .config-bar select:focus { outline: none; border-color: #5350c4; }
+        .config-bar input { width: 300px; }
+
+        .config-btn {
+            background: rgba(200, 199, 255, 0.1);
+            border: 1px solid rgba(200, 199, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 6px;
+            color: #c8c7ff;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .config-btn:hover { background: rgba(200, 199, 255, 0.2); }
+
+        .demo-badge {
+            background: linear-gradient(135deg, #5350c4, #3d39ac);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-left: auto;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            height: calc(100vh - 116px);
+        }
+
+        /* Chat Panel */
+        .chat-panel {
+            background: rgba(22, 22, 46, 0.8);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(200, 199, 255, 0.1);
+        }
+
+        .chat-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(200, 199, 255, 0.1);
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #c8c7ff;
+        }
+
+        .chat-header-icon {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, #5350c4, #3d39ac);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .chat-messages::-webkit-scrollbar { width: 6px; }
+        .chat-messages::-webkit-scrollbar-track { background: transparent; }
+        .chat-messages::-webkit-scrollbar-thumb { background: rgba(200, 199, 255, 0.2); border-radius: 3px; }
+
+        .message {
+            max-width: 90%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.5;
+            animation: messageIn 0.3s ease;
+        }
+
+        @keyframes messageIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .message.bot { align-self: flex-start; background: rgba(200, 199, 255, 0.1); border: 1px solid rgba(200, 199, 255, 0.15); }
+        .message.user { align-self: flex-end; background: linear-gradient(135deg, #5350c4, #3d39ac); box-shadow: 0 4px 15px rgba(83, 80, 196, 0.3); }
+        .message.error { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        .triage-result {
+            background: rgba(30, 30, 50, 0.8);
+            border: 1px solid rgba(200, 199, 255, 0.15);
+            border-radius: 16px;
+            padding: 16px;
+            align-self: flex-start;
+            max-width: 95%;
+            animation: messageIn 0.3s ease;
+        }
+
+        .triage-result h4 { font-size: 11px; color: #c8c7ff; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .triage-level {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .triage-level.urgent-1 { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+        .triage-level.urgent-2 { background: linear-gradient(135deg, #ea580c, #c2410c); }
+        .triage-level.urgent-3 { background: linear-gradient(135deg, #ca8a04, #a16207); }
+        .triage-level.urgent-4 { background: linear-gradient(135deg, #16a34a, #15803d); }
+        .triage-level.urgent-5 { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+
+        .triage-details { font-size: 13px; color: #ccc; }
+        .triage-details p { margin: 6px 0; display: flex; gap: 8px; }
+        .triage-details strong { color: #c8c7ff; min-width: 80px; }
+
+        .form-preview {
+            background: rgba(20, 20, 40, 0.6);
+            border: 1px solid rgba(200, 199, 255, 0.1);
+            border-radius: 10px;
+            padding: 14px;
+            margin-top: 14px;
+        }
+
+        .form-preview h5 { color: #c8c7ff; margin-bottom: 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .form-preview .field {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(200, 199, 255, 0.08);
+            font-size: 13px;
+        }
+
+        .form-preview .field:last-child { border-bottom: none; }
+        .form-preview .label { color: #888; }
+        .form-preview .value { color: #eee; text-align: right; }
+
+        .assignment-result {
+            background: linear-gradient(135deg, #5350c4 0%, #3d39ac 100%);
+            border-radius: 16px;
+            padding: 16px;
+            align-self: flex-start;
+            max-width: 95%;
+            animation: messageIn 0.3s ease;
+            box-shadow: 0 4px 20px rgba(83, 80, 196, 0.4);
+        }
+
+        .assignment-result h4 { font-size: 15px; margin-bottom: 8px; }
+        .assignment-result p { font-size: 13px; opacity: 0.9; line-height: 1.5; }
+
+        .chat-input {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(200, 199, 255, 0.1);
+            display: flex;
+            gap: 12px;
+            background: rgba(20, 20, 40, 0.5);
+        }
+
+        .chat-input textarea {
+            flex: 1;
+            background: rgba(30, 30, 50, 0.8);
+            border: 1px solid rgba(200, 199, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #eee;
+            font-size: 14px;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+        }
+
+        .chat-input textarea:focus { border-color: #5350c4; }
+        .chat-input textarea::placeholder { color: #666; }
+
+        .chat-input button {
+            background: linear-gradient(135deg, #5350c4, #3d39ac);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(83, 80, 196, 0.3);
+        }
+
+        .chat-input button:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(83, 80, 196, 0.4); }
+        .chat-input button:disabled { background: #333; box-shadow: none; cursor: not-allowed; transform: none; }
+
+        /* Dashboard Panel */
+        .dashboard-panel { padding: 24px; overflow-y: auto; }
+
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .dashboard-header h2 { font-size: 18px; font-weight: 600; color: #c8c7ff; }
+
+        .live-indicator { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #888; }
+
+        .hospitals-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .hospital-card {
+            background: rgba(30, 30, 50, 0.6);
+            border: 1px solid rgba(200, 199, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.4s ease;
+        }
+
+        .hospital-card.highlight {
+            border-color: #5350c4;
+            box-shadow: 0 0 0 1px #5350c4, 0 0 30px rgba(83, 80, 196, 0.4);
+            transform: scale(1.02);
+        }
+
+        .hospital-card h3 { font-size: 15px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; color: #eee; }
+        .hospital-card h3 .icon { width: 36px; height: 36px; background: linear-gradient(135deg, #5350c4, #3d39ac); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+        .capacity-bar { height: 10px; background: rgba(200, 199, 255, 0.1); border-radius: 5px; overflow: hidden; margin-bottom: 10px; }
+
+        .capacity-fill { height: 100%; border-radius: 5px; transition: width 0.6s ease; background: linear-gradient(90deg, #4ade80, #22c55e); }
+        .capacity-fill.medium { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+        .capacity-fill.high { background: linear-gradient(90deg, #f87171, #ef4444); }
+
+        .hospital-stats { display: flex; justify-content: space-between; font-size: 13px; color: #999; margin-bottom: 16px; }
+        .hospital-specialties { display: flex; flex-wrap: wrap; gap: 6px; }
+
+        .specialty-tag {
+            background: rgba(200, 199, 255, 0.1);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #c8c7ff;
+            border: 1px solid rgba(200, 199, 255, 0.15);
+        }
+
+        .activity-section h3 { font-size: 16px; margin-bottom: 16px; color: #c8c7ff; }
+
+        .activity-log {
+            background: rgba(30, 30, 50, 0.6);
+            border: 1px solid rgba(200, 199, 255, 0.1);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .activity-item {
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(200, 199, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 14px;
+        }
+
+        .activity-item:last-child { border-bottom: none; }
+
+        .activity-item.new { animation: activityIn 0.5s ease; background: rgba(83, 80, 196, 0.15); }
+
+        @keyframes activityIn {
+            from { opacity: 0; transform: translateX(-20px); background: rgba(83, 80, 196, 0.3); }
+            to { opacity: 1; transform: translateX(0); background: rgba(83, 80, 196, 0.15); }
+        }
+
+        .activity-time { color: #666; font-size: 13px; font-family: monospace; min-width: 50px; }
+        .activity-content { flex: 1; color: #ccc; }
+        .activity-hospital { color: #c8c7ff; font-weight: 500; }
+
+        .activity-urgency { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .activity-urgency.urgent { background: linear-gradient(135deg, #ea580c, #c2410c); }
+        .activity-urgency.standard { background: linear-gradient(135deg, #16a34a, #15803d); }
+        .activity-urgency.low { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+
+        .typing {
+            display: flex;
+            gap: 5px;
+            padding: 14px 18px;
+            background: rgba(200, 199, 255, 0.1);
+            border: 1px solid rgba(200, 199, 255, 0.15);
+            border-radius: 16px;
+            align-self: flex-start;
+        }
+
+        .typing span { width: 8px; height: 8px; background: #c8c7ff; border-radius: 50%; animation: typingBounce 1.4s infinite ease-in-out; }
+        .typing span:nth-child(2) { animation-delay: 0.2s; }
+        .typing span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingBounce { 0%, 80%, 100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-6px); opacity: 1; } }
+
+        .sample-prompts {
+            padding: 12px 20px;
+            border-top: 1px solid rgba(200, 199, 255, 0.1);
+            background: rgba(20, 20, 40, 0.3);
+        }
+
+        .sample-prompts p { font-size: 11px; color: #666; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .sample-prompts .prompts { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .sample-prompt {
+            background: rgba(200, 199, 255, 0.1);
+            border: 1px solid rgba(200, 199, 255, 0.15);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #c8c7ff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sample-prompt:hover { background: rgba(200, 199, 255, 0.2); border-color: #5350c4; }
+
+        .empty-activity { padding: 40px 20px; text-align: center; color: #666; }
+        .empty-activity .icon { font-size: 32px; margin-bottom: 12px; opacity: 0.5; }
+
+        .optimization-badge {
+            background: linear-gradient(135deg, #10b981, #059669);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-left: 8px;
+        }
+
+        @media (max-width: 1200px) { .hospitals-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 900px) {
+            .main-container { grid-template-columns: 1fr; }
+            .chat-panel { height: 50vh; border-right: none; border-bottom: 1px solid rgba(200, 199, 255, 0.1); }
+            .hospitals-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><span class="logo">🏥</span> HSE Multi-Agent Manager <span class="optimization-badge">OR-Tools</span></h1>
+        <div class="status">
+            <div class="status-dot" id="connectionStatus"></div>
+            <span id="connectionText">Connecting...</span>
+        </div>
+    </div>
+
+    <div class="config-bar">
+        <label>Backend URL:
+            <input type="text" id="backendUrl" value="http://localhost:8000" placeholder="http://localhost:8000">
+        </label>
+        <button class="config-btn" onclick="testConnection()">Test Connection</button>
+        <button class="config-btn" onclick="resetBackend()">Reset Demo</button>
+        <span class="demo-badge">Hackathon Demo</span>
+    </div>
+
+    <div class="main-container">
+        <div class="chat-panel">
+            <div class="chat-header"><span class="chat-header-icon">💬</span> Patient Intake Terminal</div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">Fáilte! Welcome to HSE Intake. Please describe your symptoms in <strong>English</strong> or <strong>Irish</strong>.</div>
+            </div>
+            <div class="sample-prompts">
+                <p>Try these examples:</p>
+                <div class="prompts">
+                    <span class="sample-prompt" onclick="usePrompt('Tá pian i mo chliabhrach agus tá mé ag mothú lag')">🇮🇪 Chest pain (Irish)</span>
+                    <span class="sample-prompt" onclick="usePrompt('I have a severe headache and blurred vision')">🇬🇧 Headache</span>
+                    <span class="sample-prompt" onclick="usePrompt('I fell and I think my wrist is broken')">🦴 Fracture</span>
+                </div>
+            </div>
+            <div class="chat-input">
+                <textarea id="userInput" placeholder="Describe your symptoms... (English or Irish)" rows="2"></textarea>
+                <button id="sendBtn" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+
+        <div class="dashboard-panel">
+            <div class="dashboard-header">
+                <h2>🗺️ Hospital Network Status</h2>
+                <div class="live-indicator"><div class="status-dot"></div> Live Updates</div>
+            </div>
+            <div class="hospitals-grid" id="hospitalsGrid"></div>
+            <div class="activity-section">
+                <h3>📋 Recent Assignments (OR-Tools Optimized)</h3>
+                <div class="activity-log" id="activityLog"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        
+        let BACKEND_URL = 'http://localhost:8000';
+        let hospitals = [];
+        let activityLog = [];
+        let isConnected = false;
+
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const hospitalsGrid = document.getElementById('hospitalsGrid');
+        const activityLogEl = document.getElementById('activityLog');
+        const backendUrlInput = document.getElementById('backendUrl');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const connectionText = document.getElementById('connectionText');
+
+        // ============================================
+        // BACKEND API CALLS
+        // ============================================
+
+        async function testConnection() {
+            BACKEND_URL = backendUrlInput.value.trim();
+            try {
+                const response = await fetch(`${BACKEND_URL}/`);
+                if (response.ok) {
+                    const data = await response.json();
+                    isConnected = true;
+                    connectionStatus.classList.remove('disconnected');
+                    connectionText.textContent = `Connected (${data.llm_provider})`;
+                    await fetchHospitals();
+                    await fetchActivity();
+                    addMessage(`✅ Connected to backend. LLM Provider: ${data.llm_provider}`, 'bot');
+                }
+            } catch (error) {
+                isConnected = false;
+                connectionStatus.classList.add('disconnected');
+                connectionText.textContent = 'Disconnected';
+                addMessage(`❌ Cannot connect to backend at ${BACKEND_URL}. Make sure the server is running.`, 'bot error');
+            }
+        }
+
+        async function fetchHospitals() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/hospitals`);
+                const data = await response.json();
+                hospitals = data.hospitals;
+                renderHospitals();
+            } catch (error) {
+                console.error('Failed to fetch hospitals:', error);
+            }
+        }
+
+        async function fetchActivity() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/activity`);
+                const data = await response.json();
+                activityLog = data.activity;
+                renderActivity();
+            } catch (error) {
+                console.error('Failed to fetch activity:', error);
+            }
+        }
+
+        async function triageAndAssign(symptoms) {
+            const response = await fetch(`${BACKEND_URL}/api/triage-and-assign`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ symptoms: symptoms })
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'API Error');
+            }
+            
+            return await response.json();
+        }
+
+        async function resetBackend() {
+            try {
+                await fetch(`${BACKEND_URL}/api/reset`, { method: 'POST' });
+                await fetchHospitals();
+                await fetchActivity();
+                addMessage('🔄 Demo reset. All data cleared.', 'bot');
+            } catch (error) {
+                addMessage('❌ Failed to reset backend.', 'bot error');
+            }
+        }
+
+        // ============================================
+        // RENDER FUNCTIONS
+        // ============================================
+
+        function renderHospitals(highlightId = null) {
+            if (hospitals.length === 0) {
+                hospitalsGrid.innerHTML = '<p style="color:#666">Loading hospitals...</p>';
+                return;
+            }
+
+            hospitalsGrid.innerHTML = hospitals.map(h => {
+                const occupancy = ((h.beds_total - h.beds_free) / h.beds_total) * 100;
+                const fillClass = occupancy > 80 ? 'high' : occupancy > 50 ? 'medium' : '';
+                return `
+                    <div class="hospital-card ${h.id === highlightId ? 'highlight' : ''}">
+                        <h3><span class="icon">🏥</span><span>${h.name}</span></h3>
+                        <div class="capacity-bar"><div class="capacity-fill ${fillClass}" style="width: ${occupancy}%"></div></div>
+                        <div class="hospital-stats"><span>🛏️ ${h.beds_free} / ${h.beds_total} beds</span><span>⏱️ ~${h.wait_time} min</span></div>
+                        <div class="hospital-specialties">${h.specialties.map(s => `<span class="specialty-tag">${s}</span>`).join('')}</div>
+                    </div>`;
+            }).join('');
+        }
+
+        function renderActivity() {
+            if (activityLog.length === 0) {
+                activityLogEl.innerHTML = `<div class="empty-activity"><div class="icon">📋</div><p>Waiting for patient assignments...</p></div>`;
+                return;
+            }
+            activityLogEl.innerHTML = activityLog.slice(0, 8).map((a, i) => {
+                const urgencyClass = a.urgency <= 2 ? 'urgent' : a.urgency <= 3 ? 'standard' : 'low';
+                const urgencyText = a.urgency <= 2 ? 'Urgent' : a.urgency <= 3 ? 'Standard' : 'Low';
+                return `
+                    <div class="activity-item ${i === 0 ? 'new' : ''}">
+                        <span class="activity-time">${a.time}</span>
+                        <span class="activity-content">Patient #${a.patient_id} → <span class="activity-hospital">${a.hospital}</span> <span style="color:#888">(${a.specialty})</span></span>
+                        <span class="activity-urgency ${urgencyClass}">${urgencyText}</span>
+                    </div>`;
+            }).join('');
+        }
+
+        // ============================================
+        // CHAT FUNCTIONS
+        // ============================================
+
+        function addMessage(content, type = 'bot') {
+            const div = document.createElement('div');
+            div.className = `message ${type}`;
+            div.innerHTML = content;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addTriageResult(triage) {
+            const labels = { 1: 'Immediate', 2: 'Very Urgent', 3: 'Urgent', 4: 'Standard', 5: 'Non-Urgent' };
+            const icons = { 1: '🔴', 2: '🟠', 3: '🟡', 4: '🟢', 5: '🔵' };
+            
+            const html = `
+                <div class="triage-result">
+                    <h4>📋 Triage Assessment (LLM)</h4>
+                    <span class="triage-level urgent-${triage.triage_level}">${icons[triage.triage_level]} Level ${triage.triage_level}: ${labels[triage.triage_level]}</span>
+                    <div class="triage-details">
+                        <p><strong>Language:</strong><span>${triage.detected_language}</span></p>
+                        ${triage.translated_symptoms ? `<p><strong>Translated:</strong><span>${triage.translated_symptoms}</span></p>` : ''}
+                        <p><strong>Specialty:</strong><span>${triage.specialty_required}</span></p>
+                        <p><strong>Reason:</strong><span>${triage.triage_reason}</span></p>
+                    </div>
+                    <div class="form-preview">
+                        <h5>📝 Auto-Filled HSE Form</h5>
+                        <div class="field"><span class="label">Patient ID</span><span class="value">#${triage.patient_id}</span></div>
+                        <div class="field"><span class="label">Chief Complaint</span><span class="value">${triage.chief_complaint}</span></div>
+                        <div class="field"><span class="label">Pain Level</span><span class="value">${triage.pain_level ? triage.pain_level + '/10' : 'N/A'}</span></div>
+                        <div class="field"><span class="label">Assigned Dept</span><span class="value">${triage.specialty_required}</span></div>
+                    </div>
+                </div>`;
+            chatMessages.innerHTML += html;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addAssignmentResult(assignment) {
+            const html = `
+                <div class="assignment-result">
+                    <h4>✅ Patient Assigned (OR-Tools Optimized)</h4>
+                    <p><strong>${assignment.hospital_name}</strong></p>
+                    <p style="margin-top:6px;opacity:0.85">${assignment.reason}</p>
+                </div>`;
+            chatMessages.innerHTML += html;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTyping() {
+            const div = document.createElement('div');
+            div.className = 'typing';
+            div.id = 'typing';
+            div.innerHTML = '<span></span><span></span><span></span>';
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTyping() { document.getElementById('typing')?.remove(); }
+        function usePrompt(text) { userInput.value = text; userInput.focus(); }
+
+        // ============================================
+        // MAIN SEND FUNCTION
+        // ============================================
+
+        async function sendMessage() {
+            const symptoms = userInput.value.trim();
+            if (!symptoms) return;
+
+            if (!isConnected) {
+                addMessage('❌ Not connected to backend. Click "Test Connection" first.', 'bot error');
+                return;
+            }
+
+            addMessage(symptoms, 'user');
+            userInput.value = '';
+            sendBtn.disabled = true;
+            showTyping();
+
+            try {
+                // Call backend: triage (LLM) + assign (OR-Tools)
+                const result = await triageAndAssign(symptoms);
+                hideTyping();
+
+                // Show triage result
+                addTriageResult(result.triage);
+
+                await new Promise(r => setTimeout(r, 600));
+
+                // Show assignment result
+                if (result.assignment) {
+                    addAssignmentResult(result.assignment);
+                    
+                    // Update hospitals and activity
+                    hospitals = result.hospitals;
+                    renderHospitals(result.assignment.hospital_id);
+                    
+                    await fetchActivity();
+                    
+                    setTimeout(() => renderHospitals(), 4000);
+                } else {
+                    addMessage('⚠️ Could not assign patient. All hospitals may be full or lacking required specialty.', 'bot error');
+                }
+
+            } catch (error) {
+                hideTyping();
+                addMessage(`⚠️ Error: ${error.message}`, 'bot error');
+            }
+
+            sendBtn.disabled = false;
+            userInput.focus();
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+
+        userInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // ============================================
+        // INITIALIZE
+        // ============================================
+
+        renderHospitals();
+        renderActivity();
+        
+        // Auto-connect on load
+        setTimeout(testConnection, 500);
+
+        console.log('🏥 HSE Multi-Agent Manager Frontend Loaded');
+        console.log('📡 Will connect to backend at:', BACKEND_URL);
+    </script>
+</body>
+</html>

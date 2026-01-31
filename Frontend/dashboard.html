@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSE Admin Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16162a 100%);
+            color: #eee;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #5350c4 0%, #3d39ac 100%);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(83, 80, 196, 0.3);
+        }
+
+        .header h1 { font-size: 22px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .header .logo { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+
+        .header .nav-link {
+            color: white;
+            text-decoration: none;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .header .nav-link:hover { background: rgba(255,255,255,0.2); }
+
+        .header .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 14px;
+            border-radius: 20px;
+        }
+
+        .status-dot {
+            width: 10px; height: 10px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+        }
+
+        .status-dot.disconnected { background: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.1); } }
+
+        .config-bar {
+            background: rgba(61, 57, 172, 0.3);
+            padding: 12px 24px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            border-bottom: 1px solid rgba(200, 199, 255, 0.1);
+            flex-wrap: wrap;
+        }
+
+        .config-bar label { color: #c8c7ff; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+
+        .config-bar input {
+            background: rgba(30, 30, 50, 0.8);
+            border: 1px solid rgba(200, 199, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: #eee;
+            font-size: 13px;
+            width: 300px;
+        }
+
+        .config-bar input:focus { outline: none; border-color: #5350c4; }
+
+        .config-btn {
+            background: rgba(200, 199, 255, 0.1);
+            border: 1px solid rgba(200, 199, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 6px;
+            color: #c8c7ff;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .config-btn:hover { background: rgba(200, 199, 255, 0.2); }
+
+        .config-btn.danger { border-color: rgba(239, 68, 68, 0.3); color: #f87171; }
+        .config-btn.danger:hover { background: rgba(239, 68, 68, 0.2); }
+
+        .optimization-badge {
+            background: linear-gradient(135deg, #10b981, #059669);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-left: auto;
+        }
+
+        /* Main Dashboard */
+        .dashboard-container {
+            padding: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: rgba(30, 30, 50, 0.6);
+            border: 1px solid rgba(200, 199, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-card .value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #c8c7ff;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .label {
+            font-size: 13px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card.highlight { border-color: #5350c4; box-shadow: 0 0 20px rgba(83, 80, 196, 0.2); }
+
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-header h2 { font-size: 18px; font-weight: 600; color: #c8c7ff; }
+
+        .live-indicator { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #888; }
+
+        /* Hospital Cards */
+        .hospitals-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .hospital-card {
+            background: rgba(30, 30, 50, 0.6);
+            border: 1px solid rgba(200, 199, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.4s ease;
+        }
+
+        .hospital-card.highlight {
+            border-color: #5350c4;
+            box-shadow: 0 0 0 1px #5350c4, 0 0 30px rgba(83, 80, 196, 0.4);
+            transform: scale(1.02);
+        }
+
+        .hospital-card h3 { font-size: 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 12px; color: #eee; }
+        .hospital-card h3 .icon { width: 40px; height: 40px; background: linear-gradient(135deg, #5350c4, #3d39ac); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+
+        .capacity-bar { height: 12px; background: rgba(200, 199, 255, 0.1); border-radius: 6px; overflow: hidden; margin-bottom: 12px; }
+
+        .capacity-fill { height: 100%; border-radius: 6px; transition: width 0.6s ease; background: linear-gradient(90deg, #4ade80, #22c55e); }
+        .capacity-fill.medium { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+        .capacity-fill.high { background: linear-gradient(90deg, #f87171, #ef4444); }
+
+        .hospital-stats { display: flex; justify-content: space-between; font-size: 14px; color: #999; margin-bottom: 18px; }
+        .hospital-stats span { display: flex; align-items: center; gap: 6px; }
+
+        .hospital-specialties { display: flex; flex-wrap: wrap; gap: 8px; }
+
+        .specialty-tag {
+            background: rgba(200, 199, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #c8c7ff;
+            border: 1px solid rgba(200, 199, 255, 0.15);
+        }
+
+        /* Two Column Layout */
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        /* Activity Log */
+        .activity-section { margin-bottom: 24px; }
+
+        .activity-log {
+            background: rgba(30, 30, 50, 0.6);
+            border: 1px solid rgba(200, 199, 255, 0.1);
+            border-radius: 16px;
+            overflow: hidden;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-log::-webkit-scrollbar { width: 6px; }
+        .activity-log::-webkit-scrollbar-track { background: transparent; }
+        .activity-log::-webkit-scrollbar-thumb { background: rgba(200, 199, 255, 0.2); border-radius: 3px; }
+
+        .activity-item {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(200, 199, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 14px;
+        }
+
+        .activity-item:last-child { border-bottom: none; }
+
+        .activity-item.new { animation: activityIn 0.5s ease; background: rgba(83, 80, 196, 0.15); }
+
+        @keyframes activityIn {
+            from { opacity: 0; transform: translateX(-20px); background: rgba(83, 80, 196, 0.3); }
+            to { opacity: 1; transform: translateX(0); background: rgba(83, 80, 196, 0.15); }
+        }
+
+        .activity-time { color: #666; font-size: 13px; font-family: monospace; min-width: 55px; }
+        .activity-content { flex: 1; color: #ccc; }
+        .activity-hospital { color: #c8c7ff; font-weight: 500; }
+
+        .activity-urgency { padding: 5px 12px; border-radius: 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .activity-urgency.urgent { background: linear-gradient(135deg, #ea580c, #c2410c); }
+        .activity-urgency.standard { background: linear-gradient(135deg, #16a34a, #15803d); }
+        .activity-urgency.low { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+
+        /* Pending Patients */
+        .pending-section { margin-bottom: 24px; }
+
+        .pending-list {
+            background: rgba(30, 30, 50, 0.6);
+            border: 1px solid rgba(200, 199, 255, 0.1);
+            border-radius: 16px;
+            overflow: hidden;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .pending-item {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(200, 199, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .pending-item:last-child { border-bottom: none; }
+
+        .pending-id { color: #c8c7ff; font-weight: 600; min-width: 70px; }
+        .pending-symptoms { flex: 1; color: #aaa; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .pending-specialty { color: #888; font-size: 12px; }
+
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #666;
+        }
+
+        .empty-state .icon { font-size: 36px; margin-bottom: 12px; opacity: 0.5; }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .hospitals-grid { grid-template-columns: repeat(2, 1fr); }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 800px) {
+            .hospitals-grid { grid-template-columns: 1fr; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .two-columns { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><span class="logo">📊</span> HSE Admin Dashboard</h1>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <a href="intake.html" class="nav-link">💬 Patient Intake</a>
+            <div class="status">
+                <div class="status-dot" id="connectionStatus"></div>
+                <span id="connectionText">Connecting...</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="config-bar">
+        <label>Backend URL:
+            <input type="text" id="backendUrl" value="http://localhost:8000" placeholder="http://localhost:8000">
+        </label>
+        <button class="config-btn" onclick="testConnection()">Test Connection</button>
+        <button class="config-btn" onclick="refreshData()">🔄 Refresh</button>
+        <button class="config-btn danger" onclick="resetBackend()">Reset Demo</button>
+        <span class="optimization-badge">🧮 OR-Tools Optimized</span>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Stats Row -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="value" id="totalBeds">--</div>
+                <div class="label">Total Beds Free</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="pendingCount">--</div>
+                <div class="label">Pending Patients</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="assignedCount">--</div>
+                <div class="label">Assigned Today</div>
+            </div>
+            <div class="stat-card highlight">
+                <div class="value" id="avgWait">--</div>
+                <div class="label">Avg Wait (min)</div>
+            </div>
+        </div>
+
+        <!-- Hospital Cards -->
+        <div class="section-header">
+            <h2>🏥 Hospital Network Status</h2>
+            <div class="live-indicator"><div class="status-dot"></div> Auto-refresh every 5s</div>
+        </div>
+
+        <div class="hospitals-grid" id="hospitalsGrid"></div>
+
+        <!-- Two Column Layout -->
+        <div class="two-columns">
+            <!-- Activity Log -->
+            <div class="activity-section">
+                <div class="section-header">
+                    <h2>📋 Recent Assignments</h2>
+                </div>
+                <div class="activity-log" id="activityLog"></div>
+            </div>
+
+            <!-- Pending Patients -->
+            <div class="pending-section">
+                <div class="section-header">
+                    <h2>⏳ Pending Patients</h2>
+                </div>
+                <div class="pending-list" id="pendingList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let BACKEND_URL = 'http://localhost:8000';
+        let isConnected = false;
+        let hospitals = [];
+        let refreshInterval = null;
+
+        const hospitalsGrid = document.getElementById('hospitalsGrid');
+        const activityLogEl = document.getElementById('activityLog');
+        const pendingListEl = document.getElementById('pendingList');
+        const backendUrlInput = document.getElementById('backendUrl');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const connectionText = document.getElementById('connectionText');
+
+        // ============================================
+        // BACKEND API CALLS
+        // ============================================
+
+        async function testConnection() {
+            BACKEND_URL = backendUrlInput.value.trim();
+            try {
+                const response = await fetch(`${BACKEND_URL}/`);
+                if (response.ok) {
+                    const data = await response.json();
+                    isConnected = true;
+                    connectionStatus.classList.remove('disconnected');
+                    connectionText.textContent = `Connected (${data.llm_provider})`;
+                    await refreshData();
+                    startAutoRefresh();
+                }
+            } catch (error) {
+                isConnected = false;
+                connectionStatus.classList.add('disconnected');
+                connectionText.textContent = 'Disconnected';
+                stopAutoRefresh();
+            }
+        }
+
+        async function fetchHospitals() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/hospitals`);
+                const data = await response.json();
+                hospitals = data.hospitals;
+                
+                document.getElementById('totalBeds').textContent = data.total_beds_free;
+                const avgWait = Math.round(hospitals.reduce((sum, h) => sum + h.wait_time, 0) / hospitals.length);
+                document.getElementById('avgWait').textContent = avgWait;
+                
+                renderHospitals();
+            } catch (error) {
+                console.error('Failed to fetch hospitals:', error);
+            }
+        }
+
+        async function fetchActivity() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/activity`);
+                const data = await response.json();
+                renderActivity(data.activity);
+            } catch (error) {
+                console.error('Failed to fetch activity:', error);
+            }
+        }
+
+        async function fetchPatients() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/patients`);
+                const data = await response.json();
+                
+                document.getElementById('pendingCount').textContent = data.pending_count;
+                document.getElementById('assignedCount').textContent = data.assigned_count;
+                
+                renderPending(data.pending);
+            } catch (error) {
+                console.error('Failed to fetch patients:', error);
+            }
+        }
+
+        async function refreshData() {
+            await Promise.all([fetchHospitals(), fetchActivity(), fetchPatients()]);
+        }
+
+        async function resetBackend() {
+            try {
+                await fetch(`${BACKEND_URL}/api/reset`, { method: 'POST' });
+                await refreshData();
+            } catch (error) {
+                console.error('Failed to reset:', error);
+            }
+        }
+
+        function startAutoRefresh() {
+            stopAutoRefresh();
+            refreshInterval = setInterval(refreshData, 5000);
+        }
+
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+        }
+
+        // ============================================
+        // RENDER FUNCTIONS
+        // ============================================
+
+        function renderHospitals(highlightId = null) {
+            if (hospitals.length === 0) {
+                hospitalsGrid.innerHTML = '<p style="color:#666">Loading hospitals...</p>';
+                return;
+            }
+
+            hospitalsGrid.innerHTML = hospitals.map(h => {
+                const occupancy = ((h.beds_total - h.beds_free) / h.beds_total) * 100;
+                const fillClass = occupancy > 80 ? 'high' : occupancy > 50 ? 'medium' : '';
+                return `
+                    <div class="hospital-card ${h.id === highlightId ? 'highlight' : ''}">
+                        <h3><span class="icon">🏥</span><span>${h.name}</span></h3>
+                        <div class="capacity-bar"><div class="capacity-fill ${fillClass}" style="width: ${occupancy}%"></div></div>
+                        <div class="hospital-stats">
+                            <span>🛏️ ${h.beds_free} / ${h.beds_total} beds</span>
+                            <span>⏱️ ~${h.wait_time} min</span>
+                        </div>
+                        <div class="hospital-specialties">${h.specialties.map(s => `<span class="specialty-tag">${s}</span>`).join('')}</div>
+                    </div>`;
+            }).join('');
+        }
+
+        function renderActivity(activity) {
+            if (!activity || activity.length === 0) {
+                activityLogEl.innerHTML = `<div class="empty-state"><div class="icon">📋</div><p>No assignments yet</p></div>`;
+                return;
+            }
+
+            activityLogEl.innerHTML = activity.slice(0, 10).map((a, i) => {
+                const urgencyClass = a.urgency <= 2 ? 'urgent' : a.urgency <= 3 ? 'standard' : 'low';
+                const urgencyText = a.urgency <= 2 ? 'Urgent' : a.urgency <= 3 ? 'Standard' : 'Low';
+                return `
+                    <div class="activity-item ${i === 0 ? 'new' : ''}">
+                        <span class="activity-time">${a.time}</span>
+                        <span class="activity-content">
+                            Patient #${a.patient_id} → <span class="activity-hospital">${a.hospital}</span>
+                            <span style="color:#888;margin-left:4px">(${a.specialty})</span>
+                        </span>
+                        <span class="activity-urgency ${urgencyClass}">${urgencyText}</span>
+                    </div>`;
+            }).join('');
+        }
+
+        function renderPending(pending) {
+            if (!pending || pending.length === 0) {
+                pendingListEl.innerHTML = `<div class="empty-state"><div class="icon">✅</div><p>No pending patients</p></div>`;
+                return;
+            }
+
+            pendingListEl.innerHTML = pending.map(p => `
+                <div class="pending-item">
+                    <span class="pending-id">#${p.patient_id}</span>
+                    <span class="pending-symptoms">${p.symptoms}</span>
+                    <span class="pending-specialty">${p.specialty_required}</span>
+                </div>`).join('');
+        }
+
+        // ============================================
+        // INITIALIZE
+        // ============================================
+
+        renderHospitals();
+        renderActivity([]);
+        renderPending([]);
+
+        // Auto-connect on load
+        setTimeout(testConnection, 500);
+
+        console.log('📊 HSE Admin Dashboard Loaded');
+    </script>
+</body>
+</html>
