@@ -64,6 +64,31 @@ router = APIRouter(prefix="/api", tags=["api"])
 # ENDPOINTS
 # ============================================
 
+TRIAGE_SYSTEM_PROMPT = """You are an HSE (Health Service Executive, Ireland) triage nurse assistant.
+Your job is to assess patient symptoms and provide triage information.
+
+Given patient symptoms, you MUST return ONLY valid JSON with no additional text, markdown, or explanation:
+
+{
+  "detected_language": "Irish" or "English",
+  "translated_symptoms": "English translation if input was Irish, otherwise null",
+  "triage_level": 1-5,
+  "triage_reason": "Brief clinical explanation for the triage level",
+  "specialty_required": "One of: Cardiology, Neurology, General, Orthopaedics, Trauma, Maternity, Oncology",
+  "chief_complaint": "Main issue in 3-5 words",
+  "pain_level": 1-10 or null if not mentioned,
+  "duration": "How long symptoms have been present, or null"
+}
+
+Triage Levels (Manchester Triage System):
+- 1 = Immediate (life-threatening, e.g., cardiac arrest, severe breathing difficulty)
+- 2 = Very Urgent (e.g., chest pain, severe bleeding, stroke symptoms)
+- 3 = Urgent (e.g., moderate pain, fractures, high fever)
+- 4 = Standard (e.g., minor injuries, mild symptoms)
+- 5 = Non-Urgent (e.g., minor complaints, routine issues)
+
+IMPORTANT: Return ONLY the JSON object, no other text."""
+
 @router.post("/triage")
 async def triage_patient(patient: PatientInput, db: Session = Depends(get_db)):
     """
@@ -71,7 +96,7 @@ async def triage_patient(patient: PatientInput, db: Session = Depends(get_db)):
     Adds patient to pending queue for optimization.
     """
     # Call LLM for triage
-    triage_result = await call_llm(patient.symptoms)
+    triage_result = await call_llm(patient.symptoms, TRIAGE_SYSTEM_PROMPT)
     
     # Get next patient ID
     max_id = db.query(models.Patient.patient_id).order_by(models.Patient.patient_id.desc()).first()
@@ -257,3 +282,220 @@ def reset_all(db: Session = Depends(get_db)):
     db.commit()
     
     return {"success": True, "message": "All data reset"}
+
+
+# ============================================
+# Dischatge Logic
+# ============================================
+
+# ============================================
+# DISCHARGE DATA MODELS
+# ============================================
+class DischargeAssessment(BaseModel):
+    patient_id: int
+    hospital_id: int
+    final_verdict: str
+
+
+# ============================================
+# LLM PROMPTS FOR DISCHARGE
+# ============================================
+DISCHARGE_FORM_PROMPT = """You are an HSE discharge coordinator. Given patient data, generate a structured discharge assessment form.
+
+Return ONLY valid JSON:
+{
+    "patient_summary": "2-3 sentence summary of patient's presentation",
+    "key_findings": ["finding1", "finding2", "finding3"],
+    "form_fields": [
+        {"name": "clinical_outcome", "label": "Clinical Outcome", "type": "textarea", "placeholder": "How did the patient respond to treatment?"},
+        {"name": "current_status", "label": "Current Status", "type": "select", "options": ["Improved", "Stable", "Worsened"]},
+        {"name": "follow_up_needed", "label": "Follow-up Required?", "type": "checkbox"},
+        {"name": "additional_notes", "label": "Additional Notes", "type": "textarea"}
+    ],
+    "suggested_questions": ["Was patient compliant with treatment?", "Any adverse reactions?", "Ready for discharge?"]
+}"""
+
+
+REFERRAL_LETTER_PROMPT = """You are an HSE discharge coordinator drafting a GP referral letter.
+
+Given patient data and nurse's final verdict, generate a professional referral letter.
+
+Return ONLY valid JSON:
+{
+    "letter_date": "today's date",
+    "gp_salutation": "Dear Dr. [GP Name]",
+    "patient_info": "Patient name, age, ID",
+    "reason_for_presentation": "Why patient came to hospital",
+    "treatment_provided": "What was done in hospital",
+    "current_status": "Patient's status at discharge",
+    "recommendations": ["recommendation1", "recommendation2"],
+    "follow_up_timeline": "When patient should see GP",
+    "letter_body": "Full professional letter text",
+    "signature": "From: HSE [Hospital Name]"
+}"""
+
+
+# ============================================
+# DISCHARGE HELPER FUNCTIONS
+# ============================================
+async def generate_discharge_form(patient_data: dict) -> dict:
+    """Use LLM to generate a discharge assessment form based on patient data."""
+    
+    patient_summary = f"""
+    Patient: {patient_data.get('patient_name', 'Unknown')} (Age: {patient_data.get('age', '?')})
+    Presented with: {patient_data.get('symptoms', 'Not specified')}
+    Triage Level: {patient_data.get('triage_level', 4)}
+    Specialty: {patient_data.get('specialty_required', 'General')}
+    Hospital: {patient_data.get('assigned_hospital', 'Unknown')}
+    """
+    
+    # Reuse the call_llm pattern from main.py
+    try:
+        result = await call_llm(patient_summary, system_prompt=DISCHARGE_FORM_PROMPT)
+        return result
+    except:
+        return mock_discharge_form()
+
+
+def mock_discharge_form() -> dict:
+    """Fallback discharge form generator."""
+    return {
+        "patient_summary": "Patient presented with acute symptoms and received appropriate treatment.",
+        "key_findings": ["Condition stabilized", "Vital signs within normal range", "Responding well to treatment"],
+        "form_fields": [
+            {"name": "clinical_outcome", "label": "Clinical Outcome", "type": "textarea", "placeholder": "How did the patient respond to treatment?"},
+            {"name": "current_status", "label": "Current Status", "type": "select", "options": ["Improved", "Stable", "Worsened"]},
+            {"name": "follow_up_needed", "label": "Follow-up Required?", "type": "checkbox"},
+            {"name": "medications", "label": "Discharge Medications", "type": "textarea"}
+        ],
+        "suggested_questions": ["Was patient compliant?", "Any complications?", "Ready for discharge?"]
+    }
+
+
+async def generate_referral_letter(patient_data: dict, nurse_verdict: str) -> dict:
+    """Use LLM to generate a GP referral letter."""
+    
+    context = f"""
+    Patient: {patient_data.get('patient_name')}
+    Age: {patient_data.get('age')}
+    Presenting Complaint: {patient_data.get('symptoms')}
+    Hospital: {patient_data.get('assigned_hospital', 'HSE Hospital')}
+    
+    Nurse's Final Verdict:
+    {nurse_verdict}
+    """
+    
+    try:
+        result = await call_llm(context, system_prompt=REFERRAL_LETTER_PROMPT)
+        return result
+    except:
+        return mock_referral_letter(patient_data, nurse_verdict)
+
+
+def mock_referral_letter(patient_data: dict, nurse_verdict: str) -> dict:
+    """Fallback referral letter generator."""
+    return {
+        "letter_date": datetime.now().strftime("%d/%m/%Y"),
+        "gp_salutation": "Dear General Practitioner",
+        "patient_info": f"{patient_data.get('patient_name')}, Age {patient_data.get('age')}",
+        "reason_for_presentation": patient_data.get('symptoms', 'Not specified'),
+        "treatment_provided": "Patient received appropriate care and monitoring during hospital stay",
+        "current_status": "Patient discharged in stable condition",
+        "recommendations": ["Monitor vital signs", "Ensure medication compliance", "Return if symptoms worsen"],
+        "follow_up_timeline": "Within 1-2 weeks",
+        "letter_body": f"Dear GP,\n\nRe: {patient_data.get('patient_name')}\n\nThis patient was admitted with {patient_data.get('symptoms')}.\n\nNurse Assessment: {nurse_verdict}\n\nPlease arrange follow-up within 1-2 weeks.\n\nBest regards,\nHSE Discharge Team",
+        "signature": f"HSE {patient_data.get('assigned_hospital', 'Hospital')}"
+    }
+
+
+# ============================================
+# DISCHARGE ENDPOINTS
+# ============================================
+@router.post("/discharge/form")
+async def get_discharge_form(patient_id: int, db: Session = Depends(get_db)):
+    """Get discharge assessment form for a patient."""
+    
+    patient = db.query(models.Patient).filter(models.Patient.patient_id == patient_id).first()
+    
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    
+    patient_data = patient.to_dict()
+    form = await generate_discharge_form(patient_data)
+    
+    return {
+        "success": True,
+        "patient_id": patient_id,
+        "patient_name": patient.patient_name,
+        "form": form
+    }
+
+
+@router.post("/discharge/submit")
+async def submit_discharge(assessment: DischargeAssessment, db: Session = Depends(get_db)):
+    """Submit discharge assessment. If not cured, generate referral letter."""
+    
+    patient = db.query(models.Patient).filter(models.Patient.patient_id == assessment.patient_id).first()
+    
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    
+    # Get hospital
+    hospital = db.query(models.Hospital).filter(models.Hospital.id == assessment.hospital_id).first()
+    
+    # If cured, just discharge
+    if assessment.final_verdict.lower() == "cured":
+        patient.status = "discharged"
+        patient.discharged_at = datetime.now()
+        
+        # Free up bed
+        if hospital:
+            hospital.beds_free += 1
+        
+        # Log activity
+        activity = models.Activity(
+            time=datetime.now().strftime("%H:%M"),
+            patient_id=patient.patient_id,
+            hospital=patient.assigned_hospital,
+            specialty=patient.specialty_required,
+            urgency=patient.triage_level,
+            action="DISCHARGED - CURED"
+        )
+        db.add(activity)
+        db.commit()
+        
+        return {
+            "success": True,
+            "status": "discharged_cured",
+            "message": f"Patient #{patient.patient_id} successfully discharged"
+        }
+    
+    # Generate referral letter
+    patient_data = patient.to_dict()
+    referral = await generate_referral_letter(patient_data, assessment.final_verdict)
+    
+    patient.status = "discharged"
+    patient.discharged_at = datetime.now()
+    
+    # Free up bed
+    if hospital:
+        hospital.beds_free += 1
+    
+    # Log activity
+    activity = models.Activity(
+        time=datetime.now().strftime("%H:%M"),
+        patient_id=patient.patient_id,
+        hospital=patient.assigned_hospital,
+        specialty=patient.specialty_required,
+        urgency=patient.triage_level,
+        action="DISCHARGED - REFERRAL SENT"
+    )
+    db.add(activity)
+    db.commit()
+    
+    return {
+        "success": True,
+        "status": "discharged_with_referral",
+        "referral_letter": referral,
+        "message": f"Patient #{patient.patient_id} discharged with GP referral"
+    }

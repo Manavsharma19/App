@@ -151,7 +151,7 @@ Triage Levels (Manchester Triage System):
 IMPORTANT: Return ONLY the JSON object, no other text."""
 
 
-async def call_llm(symptoms: str) -> dict:
+async def call_llm(symptoms: str, system_prompt: str) -> dict:
     """
     Call the configured LLM for triage assessment.
     Supports custom endpoints, Anthropic, and OpenAI.
@@ -168,7 +168,7 @@ async def call_llm(symptoms: str) -> dict:
             payload = {
                 "model": LLMConfig.CUSTOM_MODEL_NAME,
                 "messages": [
-                    {"role": "system", "content": TRIAGE_SYSTEM_PROMPT},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": f"Patient says: {symptoms}"}
                 ],
                 "temperature": 0.3,
@@ -217,7 +217,7 @@ async def call_llm(symptoms: str) -> dict:
                 json={
                     "model": LLMConfig.ANTHROPIC_MODEL,
                     "max_tokens": 1024,
-                    "system": TRIAGE_SYSTEM_PROMPT,
+                    "system": system_prompt,
                     "messages": [
                         {"role": "user", "content": f"Patient says: {symptoms}"}
                     ]
@@ -241,7 +241,7 @@ async def call_llm(symptoms: str) -> dict:
                 json={
                     "model": LLMConfig.OPENAI_MODEL,
                     "messages": [
-                        {"role": "system", "content": TRIAGE_SYSTEM_PROMPT},
+                        {"role": "system", "content": system_prompt},
                         {"role": "user", "content": f"Patient says: {symptoms}"}
                     ]
                 }
