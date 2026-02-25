@@ -8,17 +8,17 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16162a 100%);
-            color: #eee;
+            background: #f5f5f5;
+            color: #333;
             min-height: 100vh;
         }
         .header {
-            background: linear-gradient(135deg, #5350c4 0%, #3d39ac 100%);
+            background: linear-gradient(135deg, #B30638 0%, #8a0428 100%);
             padding: 16px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 20px rgba(83, 80, 196, 0.3);
+            box-shadow: 0 4px 20px rgba(179, 6, 56, 0.3);
         }
         .header h1 { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
         .header .logo { width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
@@ -30,58 +30,58 @@
         .status-dot { width: 10px; height: 10px; background: #4ade80; border-radius: 50%; animation: pulse 2s infinite; }
         .status-dot.disconnected { background: #ef4444; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .config-bar { background: rgba(61, 57, 172, 0.3); padding: 12px 24px; display: flex; gap: 20px; align-items: center; border-bottom: 1px solid rgba(200, 199, 255, 0.1); flex-wrap: wrap; }
-        .config-bar label { color: #c8c7ff; font-size: 13px; display: flex; align-items: center; gap: 8px; }
-        .config-bar input { background: rgba(30, 30, 50, 0.8); border: 1px solid rgba(200, 199, 255, 0.2); padding: 8px 12px; border-radius: 6px; color: #eee; font-size: 13px; width: 280px; }
-        .config-btn { background: rgba(200, 199, 255, 0.1); border: 1px solid rgba(200, 199, 255, 0.2); padding: 8px 16px; border-radius: 6px; color: #c8c7ff; font-size: 13px; cursor: pointer; transition: all 0.2s; }
-        .config-btn:hover { background: rgba(200, 199, 255, 0.2); }
+        .config-bar { background: rgba(179, 6, 56, 0.08); padding: 12px 24px; display: flex; gap: 20px; align-items: center; border-bottom: 1px solid rgba(179, 6, 56, 0.15); flex-wrap: wrap; }
+        .config-bar label { color: #333; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+        .config-bar input { background: white; border: 1px solid #ddd; padding: 8px 12px; border-radius: 6px; color: #333; font-size: 13px; width: 280px; }
+        .config-btn { background: #00473E; border: 1px solid #00473E; padding: 8px 16px; border-radius: 6px; color: white; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+        .config-btn:hover { background: #003229; }
         .config-btn.danger { border-color: rgba(239, 68, 68, 0.3); color: #f87171; }
         .optimization-badge { background: linear-gradient(135deg, #10b981, #059669); padding: 6px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-left: auto; }
         .dashboard-container { padding: 24px; max-width: 1600px; margin: 0 auto; }
         .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 28px; }
-        .stat-card { background: rgba(30, 30, 50, 0.6); border: 1px solid rgba(200, 199, 255, 0.1); border-radius: 16px; padding: 20px; text-align: center; }
-        .stat-card .value { font-size: 32px; font-weight: 700; color: #c8c7ff; margin-bottom: 6px; }
-        .stat-card .label { font-size: 12px; color: #888; text-transform: uppercase; }
-        .stat-card.highlight { border-color: #5350c4; box-shadow: 0 0 20px rgba(83, 80, 196, 0.2); }
+        .stat-card { background: white; border: 1px solid #e0e0e0; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+        .stat-card .value { font-size: 32px; font-weight: 700; color: #333; margin-bottom: 6px; }
+        .stat-card .label { font-size: 12px; color: #666; text-transform: uppercase; }
+        .stat-card.highlight { border-color: #B30638; box-shadow: 0 0 20px rgba(179, 6, 56, 0.2); }
         .stat-card.green .value { color: #4ade80; }
         .stat-card.orange .value { color: #fbbf24; }
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .section-header h2 { font-size: 18px; font-weight: 600; color: #c8c7ff; }
+        .section-header h2 { font-size: 18px; font-weight: 600; color: #333; }
         .live-indicator { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #888; }
         .hospitals-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 32px; }
         @media (max-width: 1400px) { .hospitals-grid, .stats-row { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 900px) { .hospitals-grid, .stats-row { grid-template-columns: repeat(2, 1fr); } }
-        .hospital-card { background: rgba(30, 30, 50, 0.6); border: 1px solid rgba(200, 199, 255, 0.1); border-radius: 16px; padding: 20px; transition: all 0.3s; }
-        .hospital-card:hover { border-color: rgba(200, 199, 255, 0.3); transform: translateY(-2px); }
-        .hospital-card h3 { font-size: 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; color: #eee; }
-        .hospital-card h3 .icon { width: 36px; height: 36px; background: linear-gradient(135deg, #5350c4, #3d39ac); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-        .hospital-card .address { font-size: 11px; color: #888; margin-bottom: 12px; }
-        .capacity-bar { height: 10px; background: rgba(200, 199, 255, 0.1); border-radius: 5px; overflow: hidden; margin-bottom: 10px; }
+        .hospital-card { background: white; border: 1px solid #e0e0e0; border-radius: 16px; padding: 20px; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+        .hospital-card:hover { border-color: #B30638; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        .hospital-card h3 { font-size: 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; color: #333; }
+        .hospital-card h3 .icon { width: 36px; height: 36px; background: linear-gradient(135deg, #B30638, #8a0428); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+        .hospital-card .address { font-size: 11px; color: #666; margin-bottom: 12px; }
+        .capacity-bar { height: 10px; background: #e0e0e0; border-radius: 5px; overflow: hidden; margin-bottom: 10px; }
         .capacity-fill { height: 100%; border-radius: 5px; transition: width 0.6s; background: linear-gradient(90deg, #4ade80, #22c55e); }
         .capacity-fill.medium { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
         .capacity-fill.high { background: linear-gradient(90deg, #f87171, #ef4444); }
-        .hospital-stats { display: flex; justify-content: space-between; font-size: 13px; color: #999; margin-bottom: 14px; }
+        .hospital-stats { display: flex; justify-content: space-between; font-size: 13px; color: #666; margin-bottom: 14px; }
         .hospital-specialties { display: flex; flex-wrap: wrap; gap: 6px; }
-        .specialty-tag { background: rgba(200, 199, 255, 0.1); padding: 4px 8px; border-radius: 6px; font-size: 10px; color: #c8c7ff; border: 1px solid rgba(200, 199, 255, 0.15); }
+        .specialty-tag { background: #f0f0f0; padding: 4px 8px; border-radius: 6px; font-size: 10px; color: #333; border: 1px solid #ddd; }
         .two-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
         @media (max-width: 1000px) { .two-columns { grid-template-columns: 1fr; } }
-        .activity-section, .pending-section { background: rgba(30, 30, 50, 0.6); border: 1px solid rgba(200, 199, 255, 0.1); border-radius: 16px; overflow: hidden; }
-        .activity-section .section-header, .pending-section .section-header { padding: 16px 20px; margin-bottom: 0; background: rgba(40, 40, 70, 0.4); border-bottom: 1px solid rgba(200, 199, 255, 0.1); }
+        .activity-section, .pending-section { background: white; border: 1px solid #e0e0e0; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+        .activity-section .section-header, .pending-section .section-header { padding: 16px 20px; margin-bottom: 0; background: #f9f9f9; border-bottom: 1px solid #e0e0e0; }
         .activity-log, .pending-list { padding: 12px; max-height: 400px; overflow-y: auto; }
-        .activity-item { display: flex; align-items: center; padding: 12px; border-radius: 10px; margin-bottom: 8px; background: rgba(40, 40, 70, 0.4); }
-        .activity-item.new { background: rgba(83, 80, 196, 0.2); border-left: 3px solid #5350c4; }
-        .activity-time { font-size: 12px; color: #888; min-width: 50px; }
+        .activity-item { display: flex; align-items: center; padding: 12px; border-radius: 10px; margin-bottom: 8px; background: #f9f9f9; }
+        .activity-item.new { background: rgba(179, 6, 56, 0.08); border-left: 3px solid #B30638; }
+        .activity-time { font-size: 12px; color: #666; min-width: 50px; }
         .activity-content { flex: 1; font-size: 13px; }
-        .activity-hospital { color: #c8c7ff; font-weight: 500; }
+        .activity-hospital { color: #B30638; font-weight: 500; }
         .activity-urgency { padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; }
-        .activity-urgency.urgent { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-        .activity-urgency.standard { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
-        .activity-urgency.low { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
-        .pending-item { display: flex; align-items: center; padding: 12px; border-radius: 10px; margin-bottom: 8px; background: rgba(40, 40, 70, 0.4); }
-        .pending-id { font-size: 12px; color: #c8c7ff; font-weight: 600; min-width: 60px; }
-        .pending-symptoms { flex: 1; font-size: 13px; color: #aaa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .pending-specialty { font-size: 11px; color: #888; background: rgba(200, 199, 255, 0.1); padding: 4px 10px; border-radius: 6px; }
-        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: #666; }
+        .activity-urgency.urgent { background: rgba(239, 68, 68, 0.15); color: #d32f2f; }
+        .activity-urgency.standard { background: rgba(251, 191, 36, 0.15); color: #f57c00; }
+        .activity-urgency.low { background: rgba(34, 197, 94, 0.15); color: #2e7d32; }
+        .pending-item { display: flex; align-items: center; padding: 12px; border-radius: 10px; margin-bottom: 8px; background: #f9f9f9; }
+        .pending-id { font-size: 12px; color: #B30638; font-weight: 600; min-width: 60px; }
+        .pending-symptoms { flex: 1; font-size: 13px; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .pending-specialty { font-size: 11px; color: #333; background: #f0f0f0; padding: 4px 10px; border-radius: 6px; }
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: #999; }
         .empty-state .icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
     </style>
 </head>

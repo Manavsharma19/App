@@ -38,6 +38,7 @@ class Patient(Base):
     patient_name = Column(String, nullable=True)
     age = Column(Integer, nullable=True)
     symptoms = Column(Text)
+    location = Column(JSON, nullable=True) # {lat, lng}
     detected_language = Column(String)
     translated_symptoms = Column(Text, nullable=True)
     triage_level = Column(Integer)  # 1-5
@@ -46,9 +47,15 @@ class Patient(Base):
     chief_complaint = Column(String)
     pain_level = Column(Integer, nullable=True)  # 1-10
     duration = Column(String, nullable=True)
-    status = Column(String)  # "pending" or "assigned"
+    # Status: "pending", "assigned", "incoming", "discharged", "discharged_gp"
+    status = Column(String)
     assigned_hospital = Column(String, nullable=True)
-    assigned_at = Column(DateTime, nullable=True)  # ← THIS WAS MISSING
+    assigned_at = Column(DateTime, nullable=True)
+    # Transfer tracking
+    transferred_from = Column(String, nullable=True)  # Previous hospital if transferred
+    transfer_reason = Column(Text, nullable=True)
+    discharged_at = Column(DateTime, nullable=True)
+    gp_referral = Column(JSON, nullable=True)  # GP referral letter data
     timestamp = Column(DateTime, default=datetime.now)
     
     def to_dict(self):
@@ -69,6 +76,10 @@ class Patient(Base):
             "status": self.status,
             "assigned_hospital": self.assigned_hospital,
             "assigned_at": self.assigned_at.isoformat() if self.assigned_at else None,
+            "transferred_from": self.transferred_from,
+            "transfer_reason": self.transfer_reason,
+            "discharged_at": self.discharged_at.isoformat() if self.discharged_at else None,
+            "gp_referral": self.gp_referral,
             "timestamp": self.timestamp.isoformat()
         }
 
@@ -83,7 +94,8 @@ class Activity(Base):
     hospital = Column(String)
     specialty = Column(String)
     urgency = Column(Integer)  # 1-5 triage level
-    timestamp = Column(DateTime, default=datetime.now)  # ← THIS WAS MISSING
+    action = Column(String, nullable=True)  # ASSIGNED, TRANSFERRED, DISCHARGED, etc.
+    timestamp = Column(DateTime, default=datetime.now)
     
     def to_dict(self):
         """Convert to dictionary for API responses"""
@@ -93,5 +105,6 @@ class Activity(Base):
             "patient_id": self.patient_id,
             "hospital": self.hospital,
             "specialty": self.specialty,
-            "urgency": self.urgency
+            "urgency": self.urgency,
+            "action": self.action
         }

@@ -9,19 +9,19 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16162a 100%);
-            color: #eee;
+            background: #f5f5f5;
+            color: #333;
             min-height: 100vh;
         }
 
         /* Header */
         .header {
-            background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+            background: linear-gradient(135deg, #B30638 0%, #8a0428 100%);
             padding: 16px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3);
+            box-shadow: 0 4px 20px rgba(179, 6, 56, 0.3);
         }
 
         .header h1 {
@@ -96,18 +96,19 @@
         /* Patient List Panel */
         .patient-list-panel {
             width: 400px;
-            background: rgba(30, 30, 50, 0.6);
-            border: 1px solid rgba(200, 199, 255, 0.1);
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
             border-radius: 16px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
         }
 
         .panel-header {
             padding: 16px 20px;
-            background: rgba(124, 58, 237, 0.2);
-            border-bottom: 1px solid rgba(200, 199, 255, 0.1);
+            background: rgba(179, 6, 56, 0.1);
+            border-bottom: 1px solid #e0e0e0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -124,23 +125,32 @@
             display: flex;
             gap: 8px;
             padding: 12px 16px;
-            background: rgba(20, 20, 40, 0.5);
-            border-bottom: 1px solid rgba(200, 199, 255, 0.1);
+            background: #fafafa;
+            border-bottom: 1px solid #e0e0e0;
         }
 
         .filter-tab {
             padding: 6px 12px;
             border-radius: 8px;
-            border: 1px solid rgba(200, 199, 255, 0.2);
+            border: 1px solid #ddd;
             background: transparent;
-            color: #888;
+            color: #666;
             font-size: 12px;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-        .filter-tab:hover { border-color: #7c3aed; color: #c4b5fd; }
-        .filter-tab.active { background: rgba(124, 58, 237, 0.3); border-color: #7c3aed; color: #c4b5fd; }
+        .filter-tab:hover { border-color: #00473E; color: #00473E; }
+        .filter-tab.active { background: rgba(179, 6, 56, 0.15); border-color: #B30638; color: #B30638; }
+
+        .filter-tab .badge {
+            background: #ef4444;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            margin-left: 4px;
+        }
 
         .patient-list {
             flex: 1;
@@ -149,8 +159,8 @@
         }
 
         .patient-item {
-            background: rgba(40, 40, 70, 0.6);
-            border: 2px solid rgba(200, 199, 255, 0.1);
+            background: #ffffff;
+            border: 2px solid #e0e0e0;
             border-radius: 12px;
             padding: 14px;
             margin-bottom: 10px;
@@ -159,19 +169,54 @@
         }
 
         .patient-item:hover {
-            border-color: #7c3aed;
+            border-color: #00473E;
             transform: translateX(4px);
         }
 
         .patient-item.selected {
-            border-color: #7c3aed;
-            background: rgba(124, 58, 237, 0.15);
-            box-shadow: 0 0 20px rgba(124, 58, 237, 0.2);
+            border-color: #B30638;
+            background: rgba(179, 6, 56, 0.08);
+            box-shadow: 0 0 20px rgba(179, 6, 56, 0.15);
         }
 
         .patient-item.triaged {
             border-color: #22c55e;
             opacity: 0.7;
+        }
+
+        .patient-item.incoming {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .confirm-admission-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            margin-left: 8px;
+        }
+
+        .confirm-admission-btn:hover {
+            background: #059669;
+            transform: scale(1.05);
+        }
+
+        .confirm-admission-btn:active {
+            transform: scale(0.98);
+        }
+
+        .transfer-info {
+            font-size: 11px;
+            color: #f59e0b;
+            margin-bottom: 8px;
+            font-weight: 500;
         }
 
         .patient-item-header {
@@ -184,17 +229,17 @@
         .patient-item .name {
             font-size: 15px;
             font-weight: 600;
-            color: #fff;
+            color: #333;
         }
 
         .patient-item .time {
             font-size: 11px;
-            color: #888;
+            color: #666;
         }
 
         .patient-item .symptoms {
             font-size: 13px;
-            color: #aaa;
+            color: #666;
             margin-bottom: 10px;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -225,22 +270,24 @@
         .tag.urgency-5 { background: #0891b2; color: white; }
         .tag.pending { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
         .tag.assigned { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .tag.incoming { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
 
         /* Triage Form Panel */
         .triage-panel {
             flex: 1;
-            background: rgba(30, 30, 50, 0.6);
-            border: 1px solid rgba(200, 199, 255, 0.1);
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
             border-radius: 16px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
         }
 
         .triage-header {
             padding: 16px 20px;
-            background: rgba(124, 58, 237, 0.2);
-            border-bottom: 1px solid rgba(200, 199, 255, 0.1);
+            background: rgba(179, 6, 56, 0.1);
+            border-bottom: 1px solid #e0e0e0;
         }
 
         .triage-header h2 {
@@ -250,7 +297,7 @@
 
         .triage-header .subtitle {
             font-size: 13px;
-            color: #888;
+            color: #666;
         }
 
         .triage-content {
@@ -278,8 +325,8 @@
 
         /* Form Sections */
         .form-section {
-            background: rgba(40, 40, 70, 0.4);
-            border: 1px solid rgba(200, 199, 255, 0.1);
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
@@ -287,7 +334,7 @@
 
         .form-section h3 {
             font-size: 14px;
-            color: #c4b5fd;
+            color: #B30638;
             margin-bottom: 16px;
             display: flex;
             align-items: center;
@@ -301,21 +348,22 @@
         }
 
         .info-item {
-            background: rgba(30, 30, 50, 0.6);
+            background: #ffffff;
             padding: 12px;
             border-radius: 8px;
+            border: 1px solid #e0e0e0;
         }
 
         .info-item .label {
             font-size: 11px;
-            color: #888;
+            color: #666;
             text-transform: uppercase;
             margin-bottom: 4px;
         }
 
         .info-item .value {
             font-size: 14px;
-            color: #fff;
+            color: #333;
             font-weight: 500;
         }
 
@@ -324,12 +372,13 @@
         }
 
         .symptoms-display {
-            background: rgba(30, 30, 50, 0.6);
+            background: #ffffff;
             padding: 16px;
             border-radius: 8px;
             font-size: 14px;
             line-height: 1.6;
-            color: #ddd;
+            color: #333;
+            border: 1px solid #e0e0e0;
         }
 
         .form-row {
@@ -346,7 +395,7 @@
 
         .form-group label {
             font-size: 12px;
-            color: #888;
+            color: #666;
             margin-bottom: 6px;
             text-transform: uppercase;
         }
@@ -354,11 +403,11 @@
         .form-group input,
         .form-group select,
         .form-group textarea {
-            background: rgba(30, 30, 50, 0.8);
-            border: 1px solid rgba(200, 199, 255, 0.2);
+            background: #ffffff;
+            border: 1px solid #ddd;
             padding: 12px;
             border-radius: 8px;
-            color: #eee;
+            color: #333;
             font-size: 14px;
         }
 
@@ -366,7 +415,7 @@
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #7c3aed;
+            border-color: #B30638;
         }
 
         .form-group select {
@@ -382,16 +431,16 @@
             flex: 1;
             padding: 12px 8px;
             border-radius: 8px;
-            border: 2px solid rgba(200, 199, 255, 0.2);
+            border: 2px solid #ddd;
             background: transparent;
-            color: #888;
+            color: #666;
             font-size: 12px;
             cursor: pointer;
             text-align: center;
             transition: all 0.2s;
         }
 
-        .urgency-option:hover { border-color: rgba(200, 199, 255, 0.4); }
+        .urgency-option:hover { border-color: #bbb; }
         
         .urgency-option.selected {
             color: white;
@@ -405,8 +454,8 @@
         .urgency-option.selected.u5 { background: #0891b2; border-color: #0891b2; }
 
         .ai-suggestion {
-            background: rgba(124, 58, 237, 0.15);
-            border: 1px solid rgba(124, 58, 237, 0.3);
+            background: rgba(0, 71, 62, 0.08);
+            border: 1px solid rgba(0, 71, 62, 0.3);
             border-radius: 8px;
             padding: 14px;
             margin-top: 12px;
@@ -417,20 +466,20 @@
             align-items: center;
             gap: 8px;
             font-size: 12px;
-            color: #c4b5fd;
+            color: #00473E;
             margin-bottom: 8px;
         }
 
         .ai-suggestion .content {
             font-size: 13px;
-            color: #ddd;
+            color: #333;
         }
 
         .ai-suggestion .apply-btn {
             margin-top: 10px;
-            background: rgba(124, 58, 237, 0.3);
-            border: 1px solid #7c3aed;
-            color: #c4b5fd;
+            background: rgba(0, 71, 62, 0.15);
+            border: 1px solid #00473E;
+            color: #00473E;
             padding: 8px 16px;
             border-radius: 6px;
             font-size: 12px;
@@ -439,7 +488,7 @@
         }
 
         .ai-suggestion .apply-btn:hover {
-            background: rgba(124, 58, 237, 0.5);
+            background: rgba(0, 71, 62, 0.25);
         }
 
         /* Form Actions */
@@ -447,8 +496,8 @@
             display: flex;
             gap: 12px;
             padding: 20px;
-            background: rgba(20, 20, 40, 0.8);
-            border-top: 1px solid rgba(200, 199, 255, 0.1);
+            background: #fafafa;
+            border-top: 1px solid #e0e0e0;
         }
 
         .btn {
@@ -462,24 +511,24 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+            background: linear-gradient(135deg, #B30638, #8a0428);
             color: white;
             flex: 1;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+            box-shadow: 0 4px 15px rgba(179, 6, 56, 0.4);
         }
 
         .btn-secondary {
-            background: rgba(200, 199, 255, 0.1);
-            border: 1px solid rgba(200, 199, 255, 0.2);
-            color: #c4b5fd;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            color: #00473E;
         }
 
         .btn-secondary:hover {
-            background: rgba(200, 199, 255, 0.2);
+            background: rgba(0, 71, 62, 0.1);
         }
 
         .btn-success {
@@ -508,13 +557,13 @@
         .assignment-result .hospital-name {
             font-size: 18px;
             font-weight: 600;
-            color: #fff;
+            color: #333;
             margin-bottom: 8px;
         }
 
         .assignment-result .details {
             font-size: 13px;
-            color: #aaa;
+            color: #666;
         }
 
         /* Scrollbar */
@@ -525,19 +574,19 @@
 
         .patient-list::-webkit-scrollbar-track,
         .triage-content::-webkit-scrollbar-track {
-            background: rgba(200, 199, 255, 0.05);
+            background: #f0f0f0;
         }
 
         .patient-list::-webkit-scrollbar-thumb,
         .triage-content::-webkit-scrollbar-thumb {
-            background: rgba(200, 199, 255, 0.2);
+            background: #ccc;
             border-radius: 3px;
         }
 
         .refresh-btn {
-            background: rgba(200, 199, 255, 0.1);
-            border: 1px solid rgba(200, 199, 255, 0.2);
-            color: #c4b5fd;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            color: #00473E;
             padding: 6px 12px;
             border-radius: 6px;
             font-size: 12px;
@@ -546,7 +595,7 @@
         }
 
         .refresh-btn:hover {
-            background: rgba(200, 199, 255, 0.2);
+            background: rgba(0, 71, 62, 0.1);
         }
 
         .empty-state {
@@ -582,44 +631,45 @@
         }
 
         .referral-form {
-            background: linear-gradient(135deg, #1e1e32 0%, #2a2a45 100%);
-            border: 2px solid rgba(124, 58, 237, 0.3);
+            background: #ffffff;
+            border: 2px solid rgba(179, 6, 56, 0.3);
             border-radius: 20px;
             padding: 40px;
             max-width: 900px;
             width: 100%;
             max-height: 95vh;
             overflow-y: auto;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
         }
 
         .referral-header {
             text-align: center;
             margin-bottom: 30px;
-            border-bottom: 2px solid rgba(124, 58, 237, 0.3);
+            border-bottom: 2px solid rgba(179, 6, 56, 0.3);
             padding-bottom: 20px;
         }
 
         .referral-header h2 {
-            color: #7c3aed;
+            color: #B30638;
             font-size: 28px;
             margin-bottom: 8px;
         }
 
         .referral-header .subtitle {
-            color: #888;
+            color: #666;
             font-size: 14px;
         }
 
         .referral-section {
-            background: rgba(40, 40, 70, 0.4);
-            border: 1px solid rgba(200, 199, 255, 0.1);
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
         }
 
         .referral-section h3 {
-            color: #c4b5fd;
+            color: #B30638;
             font-size: 16px;
             margin-bottom: 16px;
             display: flex;
@@ -644,29 +694,29 @@
         }
 
         .field label {
-            color: #aaa;
+            color: #666;
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .field .value {
-            background: rgba(20, 20, 40, 0.6);
-            border: 1px solid rgba(200, 199, 255, 0.2);
+            background: #ffffff;
+            border: 1px solid #ddd;
             border-radius: 8px;
             padding: 10px 12px;
-            color: #fff;
+            color: #333;
             font-size: 14px;
         }
 
         .field select,
         .field input,
         .field textarea {
-            background: rgba(20, 20, 40, 0.6);
-            border: 1px solid rgba(200, 199, 255, 0.2);
+            background: #ffffff;
+            border: 1px solid #ddd;
             border-radius: 8px;
             padding: 10px 12px;
-            color: #fff;
+            color: #333;
             font-size: 14px;
         }
 
@@ -680,7 +730,7 @@
             gap: 16px;
             margin-top: 30px;
             padding-top: 20px;
-            border-top: 1px solid rgba(200, 199, 255, 0.1);
+            border-top: 1px solid #e0e0e0;
         }
 
         .referral-btn {
@@ -695,22 +745,22 @@
         }
 
         .referral-btn.cancel {
-            background: rgba(100, 100, 120, 0.3);
-            color: #aaa;
+            background: #f0f0f0;
+            color: #666;
         }
 
         .referral-btn.cancel:hover {
-            background: rgba(100, 100, 120, 0.4);
+            background: #e5e5e5;
         }
 
         .referral-btn.submit {
-            background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+            background: linear-gradient(135deg, #B30638 0%, #8a0428 100%);
             color: white;
         }
 
         .referral-btn.submit:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+            box-shadow: 0 6px 20px rgba(179, 6, 56, 0.4);
         }
 
         .alert-box {
@@ -758,6 +808,7 @@
                 <button class="filter-tab active" onclick="filterPatients('all')">All</button>
                 <button class="filter-tab" onclick="filterPatients('pending')">Pending</button>
                 <button class="filter-tab" onclick="filterPatients('assigned')">Assigned</button>
+                <button class="filter-tab" onclick="filterPatients('incoming')">Incoming <span id="incomingBadge" class="badge"></span></button>
             </div>
             <div class="patient-list" id="patientList">
                 <div class="empty-state">
@@ -834,13 +885,28 @@
                     </div>
                 </div>
 
-                <!-- Transfer Details -->
+                <!-- Disposition Type -->
                 <div class="referral-section">
+                    <h3>📋 Disposition</h3>
+                    <div class="form-grid">
+                        <div class="field full">
+                            <label>Disposition Type *</label>
+                            <select id="dispositionType" required onchange="toggleDispositionFields()">
+                                <option value="">Select Disposition</option>
+                                <option value="transfer">Transfer to Another Hospital</option>
+                                <option value="discharge_gp">Discharge with GP Follow-up (No Hospital)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transfer Details (shown when transfer selected) -->
+                <div class="referral-section" id="transferSection">
                     <h3>🔄 Transfer Details</h3>
                     <div class="form-grid">
                         <div class="field">
                             <label>Receiving Hospital *</label>
-                            <select id="receivingHospital" required>
+                            <select id="receivingHospital">
                                 <option value="">Select Hospital</option>
                                 <option value="Cork University Hospital">Cork University Hospital</option>
                                 <option value="Mercy University Hospital">Mercy University Hospital</option>
@@ -851,7 +917,7 @@
                         </div>
                         <div class="field">
                             <label>Required Specialty *</label>
-                            <select id="requiredSpecialty" required>
+                            <select id="requiredSpecialty">
                                 <option value="">Select Specialty</option>
                                 <option value="General">General</option>
                                 <option value="Cardiology">Cardiology</option>
@@ -866,7 +932,7 @@
                         </div>
                         <div class="field">
                             <label>Urgency of Transfer *</label>
-                            <select id="transferUrgency" required>
+                            <select id="transferUrgency">
                                 <option value="">Select Urgency</option>
                                 <option value="Immediate">Immediate (within 1 hour)</option>
                                 <option value="Urgent">Urgent (within 4 hours)</option>
@@ -887,13 +953,34 @@
                     </div>
                 </div>
 
+                <!-- GP Follow-up Section (shown when discharge_gp selected) -->
+                <div class="referral-section" id="gpSection" style="display: none;">
+                    <h3>👨‍⚕️ GP Follow-up Details</h3>
+                    <div class="form-grid">
+                        <div class="field">
+                            <label>Follow-up Timeline *</label>
+                            <select id="followUpTimeline">
+                                <option value="Within 24-48 hours">Within 24-48 hours</option>
+                                <option value="Within 1 week">Within 1 week</option>
+                                <option value="Within 1-2 weeks" selected>Within 1-2 weeks</option>
+                                <option value="Within 1 month">Within 1 month</option>
+                                <option value="As needed">As needed</option>
+                            </select>
+                        </div>
+                        <div class="field full">
+                            <label>GP Recommendations</label>
+                            <textarea id="gpRecommendations" placeholder="e.g., Monitor blood pressure, continue current medications, return if symptoms worsen..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Clinical Information -->
                 <div class="referral-section">
                     <h3>🩺 Clinical Information</h3>
                     <div class="form-grid full">
                         <div class="field">
-                            <label>Reason for Transfer *</label>
-                            <textarea id="transferReason" required placeholder="e.g., Patient requires specialist cardiac care not available at current facility..."></textarea>
+                            <label id="reasonLabel">Reason for Transfer / Discharge *</label>
+                            <textarea id="transferReason" required placeholder="e.g., Patient condition stabilized, requires GP follow-up for ongoing care..."></textarea>
                         </div>
                         <div class="field">
                             <label>Current Medical Status & Vital Signs</label>
@@ -959,19 +1046,41 @@
         });
 
         async function loadPatients() {
+            console.log('🟡 [NURSE] loadPatients called');
             try {
                 const response = await fetch(`${BACKEND_URL}/api/patients`);
                 const data = await response.json();
                 
-                // Combine pending and assigned
+                console.log('🟡 [NURSE] Response received:', {
+                    pending: data.pending_count,
+                    assigned: data.assigned_count,
+                    incoming: data.incoming_count
+                });
+                
+                // Combine pending, assigned, and incoming
                 patients = [
                     ...data.pending.map(p => ({ ...p, status: 'pending' })),
-                    ...data.assigned.map(p => ({ ...p, status: 'assigned' }))
+                    ...data.assigned.map(p => ({ ...p, status: 'assigned' })),
+                    ...(data.incoming || []).map(p => ({ ...p, status: 'incoming' }))
                 ];
+                
+                console.log('🟡 [NURSE] Total patients loaded:', patients.length);
+                data.pending.forEach(p => console.log(`  - Pending: Patient #${p.patient_id}`));
                 
                 document.getElementById('pendingCount').textContent = data.pending_count;
                 document.getElementById('assignedCount').textContent = data.assigned_count;
                 
+                // Update incoming badge
+                const incomingCount = data.incoming_count || 0;
+                const incomingBadge = document.getElementById('incomingBadge');
+                if (incomingCount > 0) {
+                    incomingBadge.textContent = incomingCount;
+                    incomingBadge.style.display = 'inline';
+                } else {
+                    incomingBadge.style.display = 'none';
+                }
+                
+                console.log('🟢 [NURSE] Rendering patient list');
                 renderPatientList();
             } catch (error) {
                 console.error('Failed to load patients:', error);
@@ -993,6 +1102,8 @@
                 filtered = patients.filter(p => p.status === 'pending');
             } else if (currentFilter === 'assigned') {
                 filtered = patients.filter(p => p.status === 'assigned');
+            } else if (currentFilter === 'incoming') {
+                filtered = patients.filter(p => p.status === 'incoming');
             }
             
             if (filtered.length === 0) {
@@ -1009,18 +1120,31 @@
                 const urgencyLabels = { 1: 'IMMEDIATE', 2: 'Very Urgent', 3: 'Urgent', 4: 'Standard', 5: 'Non-Urgent' };
                 const time = new Date(p.timestamp).toLocaleTimeString('en-IE', { hour: '2-digit', minute: '2-digit' });
                 
+                const statusClass = p.status === 'assigned' ? 'triaged' : (p.status === 'incoming' ? 'incoming' : '');
+                const statusLabel = p.status === 'pending' ? '⏳ Pending' : 
+                                   p.status === 'incoming' ? '🔄 Incoming' : '✅ Assigned';
+                
+                // Add confirm button for incoming patients
+const confirmButton = (p.status === 'incoming' && !p.transferred_from) ? `
+                    <button class="confirm-admission-btn" onclick="confirmAdmission(${p.patient_id}, event)" title="Confirm admission for this patient">
+                        ✅ Confirm Admission
+                    </button>
+                ` : '';
+                
                 return `
-                    <div class="patient-item ${p.status === 'assigned' ? 'triaged' : ''} ${selectedPatient?.patient_id === p.patient_id ? 'selected' : ''}" 
+                    <div class="patient-item ${statusClass} ${selectedPatient?.patient_id === p.patient_id ? 'selected' : ''}" 
                          onclick="selectPatient(${p.patient_id})">
                         <div class="patient-item-header">
                             <span class="name">${p.patient_name || `Patient #${p.patient_id}`}</span>
                             <span class="time">${time}</span>
+                            ${confirmButton}
                         </div>
                         <div class="symptoms">${p.symptoms}</div>
+                        ${p.transferred_from ? `<div class="transfer-info">↑ From: ${p.transferred_from}</div>` : ''}
                         <div class="tags">
                             <span class="tag urgency urgency-${p.triage_level}">${urgencyLabels[p.triage_level]}</span>
-                            <span class="tag ${p.status}">${p.status === 'pending' ? '⏳ Pending' : '✅ Assigned'}</span>
-                            ${p.specialty_required ? `<span class="tag" style="background: rgba(200,199,255,0.1); color: #c4b5fd;">${p.specialty_required}</span>` : ''}
+                            <span class="tag ${p.status}">${statusLabel}</span>
+                            ${p.specialty_required ? `<span class="tag" style="background: rgba(0,71,62,0.1); color: #00473E;">${p.specialty_required}</span>` : ''}
                         </div>
                     </div>
                 `;
@@ -1031,6 +1155,45 @@
             selectedPatient = patients.find(p => p.patient_id === patientId);
             renderPatientList();
             renderTriageForm();
+        }
+
+        async function confirmAdmission(patientId, event) {
+            /**
+             * Confirm admission for an incoming patient
+             * - Calls backend to run optimization and assign to hospital
+             * - Updates patient status from incoming to assigned
+             * - Shows SMS notification
+             */
+            event.stopPropagation(); // Don't trigger selectPatient
+            
+            console.log(`🟡 [NURSE] Confirm admission clicked for patient #${patientId}`);
+            
+            if (!confirm(`Confirm admission for Patient #${patientId}? They will be assigned to an appropriate hospital.\n\nThis action cannot be undone.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/patients/${patientId}/confirm-admission`, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                console.log(`🟡 [NURSE] Confirm response:`, result);
+                
+                if (result.success) {
+                    // Show SMS notification popup
+                    const hospitalName = result.hospital || 'Assigned Hospital';
+                    alert(`✅ SMS Sent to Patient\n\n📱 Message: "Proceed to ${hospitalName}"\n\nPatient #${patientId} has been admitted and assigned to ${hospitalName}.`);
+                    console.log(`🟢 [NURSE] Patient #${patientId} confirmed and assigned to ${result.hospital}`);
+                    await loadPatients();
+                } else {
+                    alert(`❌ Could not confirm admission.\n\n${result.message || 'Unknown error'}`);
+                    console.log(`🔴 [NURSE] Confirmation failed:`, result.message);
+                }
+            } catch (error) {
+                console.error(`🔴 [NURSE] Confirm admission error:`, error);
+                alert('Failed to confirm admission. Please try again.');
+            }
         }
 
         function renderTriageForm() {
@@ -1093,7 +1256,7 @@
                         <h3>🩺 Presenting Symptoms</h3>
                         <div class="symptoms-display">${selectedPatient.symptoms}</div>
                         ${selectedPatient.detected_language === 'Irish' ? `
-                            <div style="margin-top: 10px; font-size: 12px; color: #888;">
+                            <div style="margin-top: 10px; font-size: 12px; color: #666;">
                                 <strong>🇮🇪 Detected Language:</strong> Irish<br>
                                 <strong>Translation:</strong> ${selectedPatient.translated_symptoms || 'N/A'}
                             </div>
@@ -1166,12 +1329,27 @@
                             </div>
                         </div>
                     ` : ''}
+                    
+                    ${selectedPatient.status === 'incoming' ? `
+                        <div class="assignment-result" style="background: rgba(245, 158, 11, 0.1); border-color: #f59e0b;">
+                            <h4>🔄 Incoming Transfer</h4>
+                            <div class="hospital-name">From: ${selectedPatient.transferred_from || 'Unknown'}</div>
+                            <div class="details">
+                                ${selectedPatient.transfer_reason ? `Reason: ${selectedPatient.transfer_reason}` : ''}
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
                 
                 ${selectedPatient.status === 'pending' ? `
                     <div class="form-actions">
                         <button class="btn btn-secondary" onclick="saveDraft()">💾 Save Draft</button>
-                        <button class="btn btn-success" onclick="completeTriageAndAssign()">✅ Complete Triage & Assign Hospital</button>
+                        <button class="btn btn-success" onclick="completeTriageAndAssign()">⚙️ Manually Run Optimization (Auto-Assign)</button>
+                    </div>
+                ` : selectedPatient.status === 'incoming' ? `
+                    <div class="form-actions">
+                        <button class="btn btn-success" onclick="acceptTransfer()">✅ Accept Transfer</button>
+                        <button class="btn btn-primary" onclick="transferPatient()">🔄 Transfer to Another Hospital</button>
                     </div>
                 ` : `
                     <div class="form-actions">
@@ -1189,24 +1367,29 @@
         }
 
         async function completeTriageAndAssign() {
+            console.log('🟡 [NURSE-ASSIGN] Calling /api/optimize to assign pending patients');
             try {
                 // Run optimization
                 const response = await fetch(`${BACKEND_URL}/api/optimize`, {
                     method: 'POST'
                 });
                 
+                console.log('🟡 [NURSE-ASSIGN] Response status:', response.status);
                 const result = await response.json();
+                console.log('🟡 [NURSE-ASSIGN] Optimization result:', result);
                 
                 if (result.status === 'optimal' || result.status === 'feasible') {
+                    console.log('🟢 [NURSE-ASSIGN] Success! Assignments made:', result.assignments.length);
                     alert(`✅ Patient assigned successfully!\n\nAssignments made: ${result.assignments.length}`);
                     await loadPatients();
                     selectedPatient = null;
                     renderTriageForm();
                 } else {
+                    console.log('🔴 [NURSE-ASSIGN] Optimization did not succeed:', result.status);
                     alert(`⚠️ ${result.message || 'Could not assign patient'}`);
                 }
             } catch (error) {
-                console.error('Assignment failed:', error);
+                console.error('🔴 [NURSE-ASSIGN] Assignment failed:', error);
                 alert('Failed to assign patient. Please try again.');
             }
         }
@@ -1217,6 +1400,35 @@
 
         function printSummary() {
             window.print();
+        }
+
+        async function acceptTransfer() {
+            if (!selectedPatient || selectedPatient.status !== 'incoming') {
+                alert('No incoming patient selected');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/patients/${selectedPatient.patient_id}/accept`, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show SMS notification with hospital name (assume CUH for now)
+                    const hospitalName = selectedPatient.assigned_hospital || 'Cork University Hospital (CUH)';
+                    alert(`✅ SMS Sent to Patient\n\n📱 Message: "Transfer accepted. Proceed to ${hospitalName}"\n\nPatient ${selectedPatient.patient_name} transfer has been accepted and is assigned to ${hospitalName}.`);
+                    await loadPatients();
+                    selectedPatient = null;
+                    renderTriageForm();
+                } else {
+                    alert(`❌ Failed to accept transfer: ${result.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Accept transfer failed:', error);
+                alert('Failed to accept transfer. Please try again.');
+            }
         }
 
         function transferPatient() {
@@ -1242,54 +1454,270 @@
                 document.getElementById('requiredSpecialty').value = selectedPatient.specialty_required;
             }
 
+            // Reset disposition type and toggle fields
+            document.getElementById('dispositionType').value = '';
+            toggleDispositionFields();
+
             // Show modal
             document.getElementById('referralModal').classList.add('active');
+        }
+
+        function toggleDispositionFields() {
+            const dispositionType = document.getElementById('dispositionType').value;
+            const transferSection = document.getElementById('transferSection');
+            const gpSection = document.getElementById('gpSection');
+            const reasonLabel = document.getElementById('reasonLabel');
+            
+            if (dispositionType === 'transfer') {
+                transferSection.style.display = 'block';
+                gpSection.style.display = 'none';
+                reasonLabel.textContent = 'Reason for Transfer *';
+                document.getElementById('transferReason').placeholder = 'e.g., Patient requires specialist cardiac care not available at current facility...';
+                
+                // Set required for transfer fields
+                document.getElementById('receivingHospital').required = true;
+                document.getElementById('transferUrgency').required = true;
+                document.getElementById('requiredSpecialty').required = true;
+                document.getElementById('transportMethod').required = true;
+                document.getElementById('medicalStatus').required = false;
+                
+                // Not required for transfer
+                document.getElementById('followUpTimeline').required = false;
+                
+            } else if (dispositionType === 'discharge_gp') {
+                transferSection.style.display = 'none';
+                gpSection.style.display = 'block';
+                reasonLabel.textContent = 'Reason for Discharge *';
+                document.getElementById('transferReason').placeholder = 'e.g., Patient condition stabilized, suitable for GP follow-up care...';
+                
+                // Set required for GP discharge fields
+                document.getElementById('followUpTimeline').required = true;
+                document.getElementById('medicalStatus').required = false;
+                
+                // Not required for GP discharge
+                document.getElementById('receivingHospital').required = false;
+                document.getElementById('transferUrgency').required = false;
+                document.getElementById('requiredSpecialty').required = false;
+                document.getElementById('transportMethod').required = false;
+                
+            } else {
+                transferSection.style.display = 'none';
+                gpSection.style.display = 'none';
+            }
         }
 
         function closeReferralModal() {
             document.getElementById('referralModal').classList.remove('active');
             document.getElementById('referralFormData').reset();
+            toggleDispositionFields();
         }
 
-        function submitReferral(event) {
+        async function submitReferral(event) {
             event.preventDefault();
+            console.log('📝 Submit referral clicked');
 
-            const referralData = {
-                patient_id: selectedPatient.patient_id,
-                patient_name: selectedPatient.patient_name,
-                receiving_hospital: document.getElementById('receivingHospital').value,
-                specialty: document.getElementById('requiredSpecialty').value,
-                urgency: document.getElementById('transferUrgency').value,
-                transport_method: document.getElementById('transportMethod').value,
-                reason: document.getElementById('transferReason').value,
-                medical_status: document.getElementById('medicalStatus').value,
-                medications: document.getElementById('currentMeds').value,
-                special_requirements: document.getElementById('specialRequirements').value,
-                clinician_name: document.getElementById('clinicianName').value,
-                clinician_contact: document.getElementById('clinicianContact').value,
-                timestamp: new Date().toISOString()
-            };
-
-            // In a real app, this would POST to the backend
-            console.log('Referral submitted:', referralData);
+            const dispositionType = document.getElementById('dispositionType').value;
+            console.log('disposition type:', dispositionType);
             
-            alert(`✅ Referral sent successfully!
-
-Patient: ${referralData.patient_name}
-Receiving Hospital: ${referralData.receiving_hospital}
-Urgency: ${referralData.urgency}
-
-The receiving hospital will be notified immediately.`);
-
-            closeReferralModal();
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('referralModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeReferralModal();
+            if (!dispositionType) {
+                alert('Please select a disposition type');
+                return;
             }
-        });
+
+            // Get all required fields
+            const requiredFields = document.querySelectorAll('#referralFormData [required]');
+            const emptyFields = [];
+            
+            requiredFields.forEach(field => {
+                // Only check fields that are visible
+                const section = field.closest('.referral-section');
+                if (section && section.style.display === 'none') return;
+                
+                if (!field.value || field.value.trim() === '') {
+                    emptyFields.push(field.previousElementSibling?.textContent || field.id);
+                }
+            });
+            
+            if (emptyFields.length > 0) {
+                alert(`❌ Please fill in the following required fields:\n\n• ${emptyFields.join('\n• ')}`);
+                console.warn('❌ Missing required fields:', emptyFields);
+                return;
+            }
+
+            try {
+                if (dispositionType === 'transfer') {
+                    // Transfer to another hospital
+                    const receivingHospital = document.getElementById('receivingHospital').value;
+                    if (!receivingHospital) {
+                        alert('Please select a receiving hospital');
+                        return;
+                    }
+
+                    const transferData = {
+                        patient_id: selectedPatient.patient_id,
+                        from_hospital: selectedPatient.assigned_hospital,
+                        to_hospital: receivingHospital,
+                        specialty: document.getElementById('requiredSpecialty').value,
+                        urgency: document.getElementById('transferUrgency').value,
+                        reason: document.getElementById('transferReason').value,
+                        transport_method: document.getElementById('transportMethod').value,
+                        medical_status: document.getElementById('medicalStatus').value
+                    };
+
+                    console.log('📤 Submitting transfer:', transferData);
+                    
+                    const response = await fetch(`${BACKEND_URL}/api/transfer`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(transferData)
+                    });
+
+                    console.log('📥 Transfer response status:', response.status);
+                    const result = await response.json();
+                    console.log('📥 Transfer response:', result);
+                    
+                    if (result.success) {
+                        alert(`✅ SMS Sent to Patient\n\n📱 Message: "You are being transferred to ${transferData.to_hospital}"\n\nPatient: ${selectedPatient.patient_name}\nFrom: ${transferData.from_hospital}\nTo: ${transferData.to_hospital}\nUrgency: ${transferData.urgency}\n\nThe receiving hospital will see this patient as an incoming transfer.`);
+                        console.log('✅ Transfer successful - closing modal and refreshing');
+                    } else {
+                        alert(`❌ Transfer failed: ${result.detail || 'Unknown error'}`);
+                        console.error('❌ Transfer error:', result);
+                    }
+
+                } else if (dispositionType === 'discharge_gp') {
+                    // Discharge with GP follow-up
+                    const hospitals = await (await fetch(`${BACKEND_URL}/api/hospitals`)).json();
+                    const hospital = hospitals.hospitals.find(h => h.name === selectedPatient.assigned_hospital);
+                    
+                    const dischargeData = {
+                        patient_id: selectedPatient.patient_id,
+                        hospital_id: hospital ? hospital.id : 0,
+                        reason: document.getElementById('transferReason').value,
+                        follow_up_timeline: document.getElementById('followUpTimeline').value,
+                        recommendations: document.getElementById('gpRecommendations').value.split('\n').filter(r => r.trim())
+                    };
+
+                    const response = await fetch(`${BACKEND_URL}/api/discharge/to-gp`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(dischargeData)
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert(`✅ SMS Sent to Patient\n\n📱 Message: "You have been discharged. Please contact your GP for follow-up within ${dischargeData.follow_up_timeline}"\n\nPatient: ${selectedPatient.patient_name}\nFollow-up: ${dischargeData.follow_up_timeline}\n\nA GP referral letter has been generated.`);
+
+                        // Show referral letter if available
+                        if (result.referral_letter) {
+                            displayReferralLetter(result.referral_letter, selectedPatient);
+                        }
+                    } else {
+                        alert(`❌ Discharge failed: ${result.detail || 'Unknown error'}`);
+                    }
+                }
+
+                // Only close modal for transfer, not for GP discharge (which shows referral letter)
+                if (dispositionType !== 'discharge_gp') {
+                    console.log('📋 Closing referral modal...');
+                    closeReferralModal();
+                    console.log('🔄 Reloading patient list...');
+                    await loadPatients();
+                    console.log('✅ Patient list reloaded');
+                    selectedPatient = null;
+                    renderTriageForm();
+                    console.log('✅ Form re-rendered');
+                }
+
+            } catch (error) {
+                console.error('❌ Submission failed:', error);
+                alert(`❌ Error submitting referral:\n\n${error.message}\n\nPlease check the console for more details.`);
+            }
+        }
+        
+        function displayReferralLetter(referralData, patient) {
+            // Create modal to display referral letter
+            const letterContent = referralData.letter_body || referralData.letter || 'No letter content available';
+            
+            const modalHtml = `
+                <div id="referralLetterModal" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.5);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 1000;
+                ">
+                    <div style="
+                        background: white;
+                        padding: 30px;
+                        border-radius: 8px;
+                        max-width: 800px;
+                        max-height: 90vh;
+                        overflow-y: auto;
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                    ">
+                        <h2 style="margin: 0 0 20px 0; color: #333;">📋 GP Referral Letter</h2>
+                        
+                        <div style="
+                            background: #f5f5f5;
+                            padding: 20px;
+                            border-left: 4px solid #0084d4;
+                            margin: 20px 0;
+                            font-family: 'Times New Roman', serif;
+                            white-space: pre-wrap;
+                            word-wrap: break-word;
+                            line-height: 1.8;
+                            font-size: 14px;
+                        ">${letterContent}</div>
+                        
+                        <div style="margin-top: 20px; text-align: right;">
+                            <button onclick="printReferralLetter()" style="
+                                padding: 10px 20px;
+                                margin-right: 10px;
+                                background: #0084d4;
+                                color: white;
+                                border: none;
+                                border-radius: 4px;
+                                cursor: pointer;
+                                font-size: 14px;
+                            ">🖨️ Print</button>
+                            <button onclick="closeReferralLetterModal()" style="
+                                padding: 10px 20px;
+                                background: #6c757d;
+                                color: white;
+                                border: none;
+                                border-radius: 4px;
+                                cursor: pointer;
+                                font-size: 14px;
+                            ">Done</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Insert modal into page
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+        
+        function closeReferralLetterModal() {
+            const modal = document.getElementById('referralLetterModal');
+            if (modal) modal.remove();
+            
+            // Now close referral form modal and refresh
+            closeReferralModal();
+            loadPatients();
+            selectedPatient = null;
+            renderTriageForm();
+        }
+        
+        function printReferralLetter() {
+            window.print();
+        }
     </script>
 </body>
 </html>

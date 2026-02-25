@@ -9,8 +9,8 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16162a 100%);
-            color: #eee;
+            background: #f5f5f5;
+            color: #333;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -18,12 +18,12 @@
 
         /* Header */
         .header {
-            background: linear-gradient(135deg, #00695c 0%, #004d40 100%);
+            background: linear-gradient(135deg, #B30638 0%, #8a0428 100%);
             padding: 16px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 20px rgba(0, 105, 92, 0.3);
+            box-shadow: 0 4px 20px rgba(179, 6, 56, 0.3);
         }
 
         .header h1 {
@@ -77,18 +77,19 @@
         /* Patient Selection Panel */
         .patient-panel {
             width: 320px;
-            background: rgba(30, 30, 50, 0.6);
-            border: 1px solid rgba(200, 199, 255, 0.1);
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
             border-radius: 16px;
             padding: 20px;
             display: flex;
             flex-direction: column;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
         }
 
         .panel-title {
             font-size: 16px;
             font-weight: 600;
-            color: #4ade80;
+            color: #00473E;
             margin-bottom: 16px;
             display: flex;
             align-items: center;
@@ -96,8 +97,8 @@
         }
 
         .patient-card {
-            background: rgba(40, 40, 70, 0.6);
-            border: 2px solid rgba(200, 199, 255, 0.1);
+            background: #f8f8f8;
+            border: 2px solid #e0e0e0;
             border-radius: 12px;
             padding: 14px;
             margin-bottom: 12px;
@@ -106,20 +107,20 @@
         }
 
         .patient-card:hover {
-            border-color: #4ade80;
+            border-color: #00473E;
             transform: translateX(4px);
         }
 
         .patient-card.selected {
-            border-color: #4ade80;
-            background: rgba(74, 222, 128, 0.1);
-            box-shadow: 0 0 20px rgba(74, 222, 128, 0.2);
+            border-color: #00473E;
+            background: rgba(0, 71, 62, 0.1);
+            box-shadow: 0 0 20px rgba(0, 71, 62, 0.2);
         }
 
         .patient-card .name {
             font-size: 15px;
             font-weight: 600;
-            color: #fff;
+            color: #333;
             margin-bottom: 6px;
         }
 
@@ -128,11 +129,11 @@
             flex-wrap: wrap;
             gap: 8px;
             font-size: 12px;
-            color: #aaa;
+            color: #666;
         }
 
         .patient-card .detail-tag {
-            background: rgba(200, 199, 255, 0.1);
+            background: #e8e8e8;
             padding: 3px 8px;
             border-radius: 6px;
         }
@@ -148,7 +149,7 @@
         }
 
         .add-patient-btn {
-            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            background: linear-gradient(135deg, #00473E 0%, #003830 100%);
             color: white;
             border: none;
             padding: 12px;
@@ -170,12 +171,12 @@
         .selected-patient-info {
             margin-top: auto;
             padding-top: 16px;
-            border-top: 1px solid rgba(200, 199, 255, 0.1);
+            border-top: 1px solid #e0e0e0;
         }
 
         .selected-patient-info h4 {
             font-size: 13px;
-            color: #888;
+            color: #666;
             margin-bottom: 10px;
         }
 
@@ -187,38 +188,39 @@
         }
 
         .info-item {
-            background: rgba(40, 40, 70, 0.8);
+            background: #f0f0f0;
             padding: 8px 10px;
             border-radius: 8px;
         }
 
         .info-item .label {
-            color: #888;
+            color: #666;
             font-size: 10px;
             text-transform: uppercase;
             margin-bottom: 2px;
         }
 
         .info-item .value {
-            color: #fff;
+            color: #333;
             font-weight: 500;
         }
 
         /* Chat Panel */
         .chat-panel {
             flex: 1;
-            background: rgba(30, 30, 50, 0.6);
-            border: 1px solid rgba(200, 199, 255, 0.1);
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
             border-radius: 16px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
         }
 
         .chat-header {
             padding: 16px 20px;
-            background: rgba(0, 105, 92, 0.3);
-            border-bottom: 1px solid rgba(200, 199, 255, 0.1);
+            background: rgba(179, 6, 56, 0.1);
+            border-bottom: 1px solid #e0e0e0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -236,13 +238,13 @@
             align-items: center;
             gap: 6px;
             font-size: 12px;
-            color: #4ade80;
+            color: #00473E;
         }
 
         .status-dot {
             width: 8px;
             height: 8px;
-            background: #4ade80;
+            background: #00473E;
             border-radius: 50%;
             animation: pulse 2s infinite;
         }
@@ -276,15 +278,15 @@
         }
 
         .message.bot {
-            background: rgba(0, 105, 92, 0.3);
-            border: 1px solid rgba(0, 105, 92, 0.5);
+            background: rgba(0, 71, 62, 0.1);
+            border: 1px solid rgba(0, 71, 62, 0.3);
             align-self: flex-start;
             border-bottom-left-radius: 4px;
         }
 
         .message.user {
-            background: rgba(83, 80, 196, 0.3);
-            border: 1px solid rgba(83, 80, 196, 0.5);
+            background: rgba(179, 6, 56, 0.1);
+            border: 1px solid rgba(179, 6, 56, 0.3);
             align-self: flex-end;
             border-bottom-right-radius: 4px;
         }
@@ -299,8 +301,8 @@
         }
 
         .message.result {
-            background: rgba(74, 222, 128, 0.15);
-            border: 1px solid rgba(74, 222, 128, 0.4);
+            background: rgba(0, 71, 62, 0.1);
+            border: 1px solid rgba(0, 71, 62, 0.3);
             align-self: center;
             max-width: 95%;
         }
@@ -310,7 +312,7 @@
         }
 
         .result-card h4 {
-            color: #4ade80;
+            color: #00473E;
             margin-bottom: 12px;
             font-size: 15px;
         }
@@ -323,14 +325,14 @@
         }
 
         .result-item {
-            background: rgba(30, 30, 50, 0.5);
+            background: #f5f5f5;
             padding: 10px;
             border-radius: 8px;
         }
 
         .result-item .label {
             font-size: 11px;
-            color: #888;
+            color: #666;
             text-transform: uppercase;
             margin-bottom: 4px;
         }
@@ -358,8 +360,8 @@
             display: flex;
             gap: 4px;
             padding: 14px 18px;
-            background: rgba(0, 105, 92, 0.3);
-            border: 1px solid rgba(0, 105, 92, 0.5);
+            background: rgba(0, 71, 62, 0.1);
+            border: 1px solid rgba(0, 71, 62, 0.3);
             border-radius: 16px;
             border-bottom-left-radius: 4px;
             align-self: flex-start;
@@ -369,7 +371,7 @@
         .typing-indicator span {
             width: 8px;
             height: 8px;
-            background: #4ade80;
+            background: #00473E;
             border-radius: 50%;
             animation: typing 1.4s infinite;
         }
@@ -385,8 +387,8 @@
         /* Chat Input */
         .chat-input-area {
             padding: 16px 20px;
-            background: rgba(20, 20, 40, 0.8);
-            border-top: 1px solid rgba(200, 199, 255, 0.1);
+            background: #f8f8f8;
+            border-top: 1px solid #e0e0e0;
         }
 
         .quick-replies {
@@ -397,9 +399,9 @@
         }
 
         .quick-reply {
-            background: rgba(0, 105, 92, 0.3);
-            border: 1px solid rgba(0, 105, 92, 0.5);
-            color: #4ade80;
+            background: rgba(0, 71, 62, 0.1);
+            border: 1px solid rgba(0, 71, 62, 0.3);
+            color: #00473E;
             padding: 8px 14px;
             border-radius: 20px;
             font-size: 13px;
@@ -408,7 +410,7 @@
         }
 
         .quick-reply:hover {
-            background: rgba(0, 105, 92, 0.5);
+            background: rgba(0, 71, 62, 0.2);
             transform: translateY(-2px);
         }
 
@@ -419,26 +421,26 @@
 
         .chat-input {
             flex: 1;
-            background: rgba(40, 40, 70, 0.8);
-            border: 1px solid rgba(200, 199, 255, 0.2);
+            background: #ffffff;
+            border: 1px solid #d0d0d0;
             padding: 14px 18px;
             border-radius: 12px;
-            color: #eee;
+            color: #333;
             font-size: 14px;
             resize: none;
         }
 
         .chat-input:focus {
             outline: none;
-            border-color: #4ade80;
+            border-color: #00473E;
         }
 
         .chat-input::placeholder {
-            color: #666;
+            color: #999;
         }
 
         .send-btn {
-            background: linear-gradient(135deg, #00695c, #004d40);
+            background: linear-gradient(135deg, #00473E 0%, #003830 100%);
             border: none;
             padding: 14px 24px;
             border-radius: 12px;
@@ -454,7 +456,7 @@
 
         .send-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0, 105, 92, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 71, 62, 0.4);
         }
 
         .send-btn:disabled {
@@ -467,7 +469,7 @@
         .language-toggle {
             display: flex;
             gap: 8px;
-            background: rgba(40, 40, 70, 0.8);
+            background: rgba(255, 255, 255, 0.2);
             padding: 4px;
             border-radius: 10px;
         }
@@ -477,15 +479,15 @@
             border-radius: 8px;
             border: none;
             background: transparent;
-            color: #888;
+            color: rgba(255, 255, 255, 0.7);
             font-size: 12px;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .lang-btn.active {
-            background: rgba(0, 105, 92, 0.5);
-            color: #4ade80;
+            background: rgba(255, 255, 255, 0.3);
+            color: #ffffff;
         }
 
         /* Scrollbar */
@@ -494,11 +496,11 @@
         }
 
         .chat-messages::-webkit-scrollbar-track {
-            background: rgba(200, 199, 255, 0.05);
+            background: #f0f0f0;
         }
 
         .chat-messages::-webkit-scrollbar-thumb {
-            background: rgba(200, 199, 255, 0.2);
+            background: #c0c0c0;
             border-radius: 3px;
         }
 
@@ -508,7 +510,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: #666;
+            color: #888;
             text-align: center;
             padding: 40px;
         }
@@ -522,7 +524,7 @@
         .no-patient-selected h3 {
             font-size: 18px;
             margin-bottom: 8px;
-            color: #888;
+            color: #555;
         }
 
         .no-patient-selected p {
@@ -548,14 +550,15 @@
         }
 
         .modal-content {
-            background: linear-gradient(135deg, #1e1e32 0%, #2a2a45 100%);
-            border: 2px solid rgba(200, 199, 255, 0.2);
+            background: #ffffff;
+            border: 2px solid #e0e0e0;
             border-radius: 20px;
             padding: 30px;
             max-width: 500px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
         }
 
         .modal-header {
@@ -567,7 +570,7 @@
 
         .modal-header h3 {
             font-size: 20px;
-            color: #4ade80;
+            color: #00473E;
         }
 
         .close-modal {
@@ -590,7 +593,7 @@
 
         .form-group label {
             display: block;
-            color: #aaa;
+            color: #555;
             font-size: 13px;
             margin-bottom: 6px;
         }
@@ -599,10 +602,10 @@
         .form-group select {
             width: 100%;
             padding: 10px 12px;
-            background: rgba(40, 40, 70, 0.8);
-            border: 1px solid rgba(200, 199, 255, 0.2);
+            background: #f8f8f8;
+            border: 1px solid #d0d0d0;
             border-radius: 8px;
-            color: white;
+            color: #333;
             font-size: 14px;
         }
 
@@ -633,12 +636,12 @@
         }
 
         .modal-btn.cancel {
-            background: rgba(100, 100, 120, 0.3);
-            color: #aaa;
+            background: #e0e0e0;
+            color: #555;
         }
 
         .modal-btn.submit {
-            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            background: linear-gradient(135deg, #00473E 0%, #003830 100%);
             color: white;
         }
     </style>
@@ -1075,15 +1078,17 @@
         async function submitTriage() {
             const symptomsText = collectedSymptoms.join('. ');
             
-            const response = await fetch(`${BACKEND_URL}/api/triage-and-assign`, {
+            const response = await fetch(`${BACKEND_URL}/api/triage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     symptoms: symptomsText,
                     patient_name: selectedPatient.name,
                     age: selectedPatient.age,
-                    latitude: selectedPatient.location.lat,
-                    longitude: selectedPatient.location.lng
+                    location: {
+                        lat: selectedPatient.location.lat,
+                        lng: selectedPatient.location.lng
+                    }
                 })
             });
             
@@ -1092,8 +1097,7 @@
         }
 
         function showTriageResult(result) {
-            const triage = result.triage;
-            const assignment = result.assignment;
+            const patient = result.patient;
             
             const urgencyLabels = {
                 1: 'IMMEDIATE',
@@ -1110,41 +1114,35 @@
                         <div class="result-item">
                             <div class="label">Urgency Level</div>
                             <div class="value">
-                                <span class="urgency-badge urgency-${triage.triage_level}">${urgencyLabels[triage.triage_level]}</span>
+                                <span class="urgency-badge urgency-${patient.triage_level}">${urgencyLabels[patient.triage_level]}</span>
                             </div>
                         </div>
                         <div class="result-item">
                             <div class="label">Specialty</div>
-                            <div class="value">${triage.specialty_required}</div>
+                            <div class="value">${patient.specialty_required}</div>
                         </div>
                         <div class="result-item" style="grid-column: span 2;">
                             <div class="label">Assessment</div>
-                            <div class="value">${triage.triage_reason}</div>
+                            <div class="value">${patient.triage_reason}</div>
                         </div>
-                        ${triage.detected_language === 'Irish' ? `
+                        ${patient.detected_language === 'Irish' ? `
                         <div class="result-item" style="grid-column: span 2;">
                             <div class="label">Translation</div>
-                            <div class="value">${triage.translated_symptoms || 'N/A'}</div>
+                            <div class="value">${patient.translated_symptoms || 'N/A'}</div>
                         </div>
                         ` : ''}
                     </div>
-                    ${assignment ? `
-                    <h4 style="margin-top: 16px;">🏥 Recommended Hospital</h4>
+                    <h4 style="margin-top: 16px;">📱 What Happens Next</h4>
                     <div class="result-grid">
                         <div class="result-item" style="grid-column: span 2;">
-                            <div class="label">Hospital</div>
-                            <div class="value" style="color: #4ade80;">${assignment.hospital_name}</div>
+                            <div class="label">Hospital Assignment</div>
+                            <div class="value" style="color: #f59e0b; font-weight: bold; font-size: 16px;">⏳ Waiting for Hospital Assignment</div>
                         </div>
-                        <div class="result-item">
-                            <div class="label">Distance</div>
-                            <div class="value">${assignment.distance_km} km</div>
-                        </div>
-                        <div class="result-item">
-                            <div class="label">Reason</div>
-                            <div class="value" style="font-size: 12px;">${assignment.reason}</div>
+                        <div class="result-item" style="grid-column: span 2;">
+                            <div class="label">📲 You Will Receive a Text Message</div>
+                            <div class="value" style="font-size: 14px;">A nurse will confirm your admission and you will receive a text message with the name of your assigned hospital and directions. Please keep your phone nearby and be ready to travel when directed.</div>
                         </div>
                     </div>
-                    ` : ''}
                 </div>
             `;
             
@@ -1152,7 +1150,7 @@
             
             // Final message
             setTimeout(() => {
-                addMessage("Your information has been sent to the nursing staff. They will review your case shortly. If your condition worsens, please call emergency services (112) immediately.", 'bot');
+                addMessage("✅ Your triage assessment has been completed. A nurse will review your case and send you a text message with your assigned hospital. Please ensure your phone is available to receive this message. If your condition worsens while waiting, please call emergency services (112) immediately.", 'bot');
             }, 500);
         }
 
